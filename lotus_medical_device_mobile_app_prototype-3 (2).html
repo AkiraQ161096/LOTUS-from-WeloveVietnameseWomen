@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOTUS — Localized Observation of Tissue Using Soft-sensors | Medical Device & Personalized App</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Three.js and OrbitControls for 3D Engineering Visualization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            lotus: {
+              pink: '#E66E87',
+              pinkHover: '#D45A74',
+              pinkLight: '#FDF2F4',
+              pinkMuted: '#F4D0DC',
+              pinkDark: '#C44D68',
+              navy: '#001B48',
+              navyLight: '#004581',
+              teal: '#018A8D',
+              tealSoft: '#97CBDC',
+              ice: '#DDE8F0',
+              roseBorder: '#EAB9CE',
+              deepRose: '#ED7BA4',
+              accentPink: '#EB5E92',
+              darkBg: '#0B1120',
+              darkCard: '#131D31',
+              darkBorder: '#1E2B45'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif']
+          },
+          boxShadow: {
+            'glow-pink': '0 0 25px -5px rgba(230, 110, 135, 0.45)',
+            'glow-teal': '0 0 25px -5px rgba(1, 138, 141, 0.45)',
+            'phone': '0 25px 60px -15px rgba(0, 27, 72, 0.35), 0 0 0 12px #1E293B, 0 0 0 14px #475569'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    
+    /* Phone frame dimension */
+    .phone-aspect {
+      width: 380px;
+      height: 775px;
+      max-width: 100%;
+    }
+    @media (max-width: 640px) {
+      .phone-aspect {
+        width: 100%;
+        height: 88vh;
+      }
+    }
+
+    /* Pulse animation */
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulseRing 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-lotus-darkBg text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 selection:bg-lotus-pink selection:text-white">
+
+  <!-- TOP GLOBAL HEADER / COMPETITION JURY BAR -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-lotus-darkCard/90 border-b border-slate-200 dark:border-lotus-darkBorder shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchViewMode('presentation')">
+        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-lotus-pink text-white shadow-sm">
+          <!-- Lotus ribbon logo symbol -->
+          <svg viewBox="0 0 100 100" class="w-8 h-8 fill-current" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 20 C42 20 37 28 37 36 C37 45 44 54 48 58 C47 52 45 46 45 41 C45 34 47 30 50 30 C53 30 55 34 55 41 C55 46 53 52 52 58 C56 54 63 45 63 36 C63 28 58 20 50 20 Z" />
+            <path d="M50 44 C48.5 44 48 45 47.5 46 C47.2 46.5 47.5 47 48 47 C49 47 49.5 46.2 50 46.2 C50.5 46.2 51 47 52 47 C52.5 47 52.8 46.5 52.5 46 C52 45 51.5 44 50 44 Z" />
+            <path d="M22 43 C15 48 13 60 25 65 C35 70 44 65 47 60 C38 60 28 54 22 43 Z" />
+            <path d="M78 43 C85 48 87 60 75 65 C65 70 56 65 53 60 C62 60 72 54 78 43 Z" />
+            <path d="M36 40 C30 45 28 55 37 60 C42 62 46 60 48 58 C42 55 38 48 36 40 Z" />
+            <path d="M64 40 C70 45 72 55 63 60 C58 62 54 60 52 58 C58 55 62 48 64 40 Z" />
+            <path d="M50 54 C46 59 44 64 43 70 C42 74 44 78 47 79 C49 80 50 78 50 78 C50 78 51 80 53 79 C56 78 58 74 57 70 C56 64 54 59 50 54 Z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-display font-extrabold text-xl tracking-tight text-lotus-navy dark:text-white">LOTUS</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-lotus-pink/10 text-lotus-pink dark:bg-lotus-pink/20">Biomedical MedTech</span>
+          </div>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-none hidden sm:block">Localized Observation of Tissue Using Soft-sensors</p>
+        </div>
+      </div>
+
+      <!-- Presentation Mode Tabs -->
+      <nav class="hidden md:flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-lotus-darkBorder text-xs font-semibold">
+        <button id="nav-mode-presentation" onclick="switchViewMode('presentation')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 bg-white dark:bg-lotus-darkCard text-lotus-pink shadow-sm">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span data-i18n="navPresentation">Full Presentation</span>
+          </span>
+        </button>
+        <button id="nav-mode-3d" onclick="switchViewMode('3d-lab')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-lotus-pink">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span data-i18n="nav3DLab">3D Hardware Lab</span>
+          </span>
+        </button>
+        <button id="nav-mode-app" onclick="switchViewMode('app-focus')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-lotus-pink">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span data-i18n="navAppFocus">Mobile App Focus</span>
+          </span>
+        </button>
+      </nav>
+
+      <!-- Language & Theme Utilities -->
+      <div class="flex items-center space-x-2">
+        <button onclick="toggleLanguage()" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-lotus-darkBorder hover:border-lotus-pink dark:hover:border-lotus-pink text-slate-700 dark:text-slate-300 transition-colors flex items-center space-x-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+          <span id="lang-indicator">EN</span>
+          <span class="text-slate-400 text-[10px]">/ VI</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="p-2 rounded-lg border border-slate-200 dark:border-lotus-darkBorder hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" aria-label="Toggle Theme">
+          <svg id="theme-icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
+          <svg id="theme-icon-moon" class="w-4 h-4 block dark:hidden text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+
+        <span class="hidden lg:inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+          ● MedTech Innovation 2026
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTAINER (Supports Multi-View Modes) -->
+  <!-- ========================================================================= -->
+  <main class="w-full">
+
+    <!-- VIEW 1: FULL PRESENTATION MODE -->
+    <div id="view-presentation" class="transition-opacity duration-300">
+      
+      <!-- HERO SECTION -->
+      <section class="relative overflow-hidden pt-12 pb-20 bg-gradient-to-b from-lotus-pinkLight/60 via-white to-slate-50 dark:from-lotus-darkBg dark:via-lotus-darkCard dark:to-lotus-darkBg border-b border-slate-200/80 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Column: Scientific Narrative & Hero Text -->
+            <div class="lg:col-span-7 space-y-6">
+              <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-lotus-pink/10 border border-lotus-pink/20 text-lotus-pink text-xs font-semibold">
+                <span class="w-2 h-2 rounded-full bg-lotus-pink animate-pulse"></span>
+                <span data-i18n="heroBadge">Research & Clinical Engineering Demonstration</span>
+              </div>
+              
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-lotus-navy dark:text-white leading-[1.15]">
+                <span data-i18n="heroTitle1">Non-Invasive Biophysical</span><br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-lotus-pink via-lotus-accentPink to-lotus-navyLight dark:to-lotus-teal" data-i18n="heroTitle2">Tissue Microenvironment</span><br/>
+                <span data-i18n="heroTitle3">Monitoring at Home</span>
+              </h1>
+              
+              <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl" data-i18n="heroDescription">
+                LOTUS combines a flexible bio-hydrogel patch, an ultra-low power Bio-AFE micro-sensor pod, and machine learning to detect localized shifts in surface electrical potential and symmetrical bioimpedance spectroscopy across breast quadrants.
+              </p>
+
+              <!-- Scientific Distinction Callout Box -->
+              <div class="p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-200 flex gap-3 items-start">
+                <svg class="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div>
+                  <strong class="font-semibold block text-amber-950 dark:text-amber-100" data-i18n="distinctionTitle">Essential Scientific Distinction:</strong>
+                  <span data-i18n="distinctionBody">Detecting localized bioelectrical anomalies or bilateral bioimpedance shifts does NOT constitute a cancer diagnosis or estimation of malignancy probability. LOTUS serves strictly as an early biophysical screening aid to support timely clinical mammography and ultrasound examinations.</span>
+                </div>
+              </div>
+
+              <!-- Action CTAs -->
+              <div class="flex flex-wrap items-center gap-4 pt-2">
+                <button onclick="switchViewMode('app-focus')" class="px-6 py-3 rounded-xl bg-lotus-pink hover:bg-lotus-pinkHover text-white font-semibold shadow-glow-pink transition-all transform hover:-translate-y-0.5 flex items-center space-x-2 text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span data-i18n="btnTryApp">Launch Interactive Mobile App</span>
+                </button>
+                
+                <button onclick="switchViewMode('3d-lab')" class="px-6 py-3 rounded-xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder hover:border-lotus-pink dark:hover:border-lotus-pink text-lotus-navy dark:text-white font-semibold transition-all text-sm flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-lotus-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                  <span data-i18n="btnInspect3D">Inspect 3D Hardware Stack</span>
+                </button>
+              </div>
+
+              <!-- Quick Spec Metric Badges -->
+              <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-200/60 dark:border-lotus-darkBorder/60 max-w-lg">
+                <div class="p-2.5 rounded-lg bg-white/80 dark:bg-lotus-darkCard/80 border border-slate-200 dark:border-lotus-darkBorder">
+                  <div class="text-[11px] text-slate-500" data-i18n="statExcitation">AC Excitation</div>
+                  <div class="text-sm font-bold text-lotus-navy dark:text-white">&lt; 80 µA <span class="text-[10px] font-normal text-emerald-500">IEC 60601</span></div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-white/80 dark:bg-lotus-darkCard/80 border border-slate-200 dark:border-lotus-darkBorder">
+                  <div class="text-[11px] text-slate-500" data-i18n="statSweep">Spectral Band</div>
+                  <div class="text-sm font-bold text-lotus-navy dark:text-white">1–100 kHz <span class="text-[10px] font-normal text-lotus-pink">β-disp</span></div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-white/80 dark:bg-lotus-darkCard/80 border border-slate-200 dark:border-lotus-darkBorder">
+                  <div class="text-[11px] text-slate-500" data-i18n="statForm">Form Factor</div>
+                  <div class="text-sm font-bold text-lotus-navy dark:text-white">Ø 22 mm <span class="text-[10px] font-normal text-slate-400">80 mAh</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Interactive 3D Hero Preview Canvas -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center">
+              <div class="relative w-full max-w-md aspect-square rounded-3xl bg-gradient-to-tr from-slate-100 to-white dark:from-lotus-darkCard dark:to-slate-900 border border-slate-200 dark:border-lotus-darkBorder shadow-2xl overflow-hidden group">
+                <canvas id="hero-3d-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+                
+                <div class="absolute top-4 left-4 pointer-events-none bg-white/90 dark:bg-lotus-darkCard/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 dark:border-lotus-darkBorder text-[11px] font-semibold text-slate-700 dark:text-slate-300 shadow-sm flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span data-i18n="canvasLive3D">Interactive 3D Preview (Drag to Orbit)</span>
+                </div>
+
+                <div class="absolute bottom-4 right-4 flex space-x-1.5">
+                  <button onclick="resetHeroCamera()" class="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 shadow-sm text-xs border border-slate-200 dark:border-lotus-darkBorder hover:text-lotus-pink" title="Reset View">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  </button>
+                  <button onclick="switchViewMode('3d-lab')" class="px-3 py-1.5 rounded-lg bg-lotus-pink text-white shadow-sm text-xs font-semibold hover:bg-lotus-pinkHover transition-colors" data-i18n="btnOpenLab">
+                    Open Lab ↗
+                  </button>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 text-center" data-i18n="hero3dHint">Rendered in real-time WebGL with physical material shaders</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: THE CLINICAL CHALLENGE & EPIDEMIOLOGY IN VIETNAM -->
+      <section class="py-16 bg-white dark:bg-lotus-darkCard border-b border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="text-xs font-bold tracking-widest text-lotus-pink uppercase" data-i18n="sec1Sub">Epidemiological Reality</span>
+            <h2 class="text-3xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="sec1Title">The Early Detection Paradox in Vietnam</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-3" data-i18n="sec1Desc">Despite a lower incidence rate than Western nations, breast cancer mortality in Vietnam remains disproportionately high due to late presentation and screening bottlenecks.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl bg-slate-50 dark:bg-lotus-darkBg/60 border border-slate-200 dark:border-lotus-darkBorder relative overflow-hidden">
+              <div class="text-3xl font-extrabold text-lotus-pink font-display">25,711+</div>
+              <div class="text-sm font-semibold text-lotus-navy dark:text-white mt-1" data-i18n="stat1Title">Annual Cases in Vietnam (2026)</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed" data-i18n="stat1Desc">Accounts for ~28% of all female cancer diagnoses with urban age-standardized incidence rising at 4.1% annually (Huong et al., 2025).</p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 relative overflow-hidden">
+              <div class="text-3xl font-extrabold text-rose-600 dark:text-rose-400 font-display">50% – 74%</div>
+              <div class="text-sm font-semibold text-rose-950 dark:text-rose-200 mt-1" data-i18n="stat2Title">Diagnosed at Stage II–IV</div>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed" data-i18n="stat2Desc">Only ~26% detected at Stage I (vs. 50-60% in US), leading to >40% mortality-to-incidence ratios (Ho et al., 2021; VnExpress, 2026).</p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-slate-50 dark:bg-lotus-darkBg/60 border border-slate-200 dark:border-lotus-darkBorder relative overflow-hidden">
+              <div class="text-3xl font-extrabold text-lotus-teal font-display">Dense Tissue</div>
+              <div class="text-sm font-semibold text-lotus-navy dark:text-white mt-1" data-i18n="stat3Title">Mammography Limitations</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed" data-i18n="stat3Desc">High fibroglandular breast density in younger Asian women masks lesions on X-ray mammograms, which also cannot be repeated monthly (Belmont et al., 2026).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: SCIENTIFIC OPERATING PRINCIPLES (4-STEP WORKFLOW) -->
+      <section class="py-16 bg-slate-50 dark:bg-lotus-darkBg border-b border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-3xl mx-auto mb-14">
+            <span class="text-xs font-bold tracking-widest text-lotus-teal uppercase" data-i18n="sec2Sub">Biophysical Foundations</span>
+            <h2 class="text-3xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="sec2Title">How LOTUS Works: Biophysical Workflow</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-3" data-i18n="sec2Desc">A systematic four-step bridge connecting cellular electrophysiology to actionable, plain-language patient early warning.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder relative shadow-sm hover:border-lotus-pink transition-all">
+              <div class="w-10 h-10 rounded-xl bg-lotus-pink/10 text-lotus-pink font-bold flex items-center justify-center mb-4 text-sm font-display">01</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="step1Title">Attach & Couple</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="step1Desc">
+                Flexible serpentine hydrogel conforms directly to the breast epidermis. The ionic matrix hydrates the stratum corneum, reducing skin-contact impedance below 20 kΩ without abrasive prep.
+              </p>
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-lotus-darkBorder/60 text-[11px] font-mono text-slate-500">
+                <span>Contact Z: &lt; 20 kΩ</span>
+              </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder relative shadow-sm hover:border-lotus-pink transition-all">
+              <div class="w-10 h-10 rounded-xl bg-lotus-teal/10 text-lotus-teal font-bold flex items-center justify-center mb-4 text-sm font-display">02</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="step2Title">Bilateral Measure</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="step2Desc">
+                AD5940 AFE injects a non-invasive AC sweep (1–100 kHz, &lt;80 µA capped) across tetrapolar electrodes. Simultaneously measures surface potential offset (ΔV) and bioimpedance Z(f).
+              </p>
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-lotus-darkBorder/60 text-[11px] font-mono text-slate-500">
+                <span>Sweep: 56.23 kHz β-disp</span>
+              </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder relative shadow-sm hover:border-lotus-pink transition-all">
+              <div class="w-10 h-10 rounded-xl bg-lotus-navyLight/10 text-lotus-navyLight dark:text-lotus-tealSoft font-bold flex items-center justify-center mb-4 text-sm font-display">03</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="step3Title">AI Feature Fusion</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="step3Desc">
+                On-device Bi-LSTM & Random Forest compare contralateral breast quadrants, extracting Cole-Cole parameters (τ, α) and Contralateral Asymmetry Ratio (CAR), filtering menstrual drift.
+              </p>
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-lotus-darkBorder/60 text-[11px] font-mono text-slate-500">
+                <span>CAR = |Z_L - Z_R| / Z_avg</span>
+              </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder relative shadow-sm hover:border-lotus-pink transition-all">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center mb-4 text-sm font-display">04</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="step4Title">Understand & Act</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="step4Desc">
+                In under 5 seconds, the user sees a plain-language tri-level status. If persistent asymmetry is confirmed, the app generates a clinical summary report for hospital oncology consultation.
+              </p>
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-lotus-darkBorder/60 text-[11px] font-mono text-slate-500">
+                <span>Tri-Level Guidance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: INTEGRATED DUAL-SHOWCASE (RELIABLE 3D CAD VIEWER & PHONE SIMULATOR SIDE-BY-SIDE) -->
+      <section class="py-16 bg-white dark:bg-lotus-darkCard border-b border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="text-xs font-bold tracking-widest text-lotus-pink uppercase" data-i18n="showcaseSub">Live Dual Demonstration</span>
+            <h2 class="text-3xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="showcaseTitle">Hardware Engineering & Mobile Software</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-2" data-i18n="showcaseDesc">Explore the physical 3D modular architecture while experiencing the personalized companion smartphone application simultaneously.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left: 3D Hardware Interactive Viewport (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col space-y-4">
+              <div class="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder shadow-sm relative overflow-hidden">
+                
+                <!-- 3D Header Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 rounded-full bg-lotus-pink animate-pulse"></span>
+                    <span class="font-display font-bold text-sm text-lotus-navy dark:text-white" data-i18n="labTitle">LOTUS 3D Modular Stack</span>
+                  </div>
+                  
+                  <!-- View Switchers for 3D -->
+                  <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                    <button id="btn-view-assembled" onclick="globalSet3DMode('assembled')" class="px-3 py-1.5 rounded-lg font-semibold transition-all bg-white dark:bg-lotus-darkCard border border-lotus-pink text-lotus-pink shadow-xs">
+                      Assembled
+                    </button>
+                    <button id="btn-view-exploded" onclick="globalSet3DMode('exploded')" class="px-3 py-1.5 rounded-lg font-semibold transition-all bg-transparent text-slate-600 dark:text-slate-300 hover:text-lotus-pink border border-slate-200 dark:border-lotus-darkBorder">
+                      Exploded View
+                    </button>
+                    <button id="btn-view-current" onclick="globalSet3DMode('current')" class="px-3 py-1.5 rounded-lg font-semibold transition-all bg-transparent text-slate-600 dark:text-slate-300 hover:text-lotus-pink border border-slate-200 dark:border-lotus-darkBorder">
+                      Current Flow
+                    </button>
+                    <button id="btn-view-phantom" onclick="globalSet3DMode('phantom')" class="px-3 py-1.5 rounded-lg font-semibold transition-all bg-transparent text-slate-600 dark:text-slate-300 hover:text-lotus-pink border border-slate-200 dark:border-lotus-darkBorder">
+                      Gelatin Phantom
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3D Viewport Canvas Container -->
+                <div class="relative w-full h-[470px] rounded-2xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-900 dark:to-lotus-darkBg overflow-hidden border border-slate-200 dark:border-lotus-darkBorder">
+                  <canvas id="interactive-3d-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+                  
+                  <!-- Floating Info Callout for 3D parts -->
+                  <div id="hotspot-info-box" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md p-3.5 rounded-2xl bg-white/95 dark:bg-lotus-darkCard/95 backdrop-blur-md border border-slate-200 dark:border-lotus-darkBorder shadow-lg text-xs transition-opacity duration-300 z-10">
+                    <div class="flex items-center justify-between mb-1">
+                      <span id="hotspot-title" class="font-bold text-lotus-pink">Mini Sensor Chip Pod & Bio-Patch</span>
+                      <span id="hotspot-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-lotus-pink/10 text-lotus-pink font-semibold">Assembled Form</span>
+                    </div>
+                    <p id="hotspot-desc" class="text-slate-600 dark:text-slate-300 text-[11px] leading-tight">
+                      Compact Ø22mm snap-on module docked securely to the flexible serpentine hydrogel patch with 4 gold magnetic pogo-pin terminals.
+                    </p>
+                  </div>
+
+                  <!-- 3D Camera Reset Control -->
+                  <button onclick="resetCurrentViewerCamera()" class="absolute top-3 right-3 p-2 rounded-xl bg-white/90 dark:bg-lotus-darkCard/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-lotus-darkBorder shadow-sm hover:text-lotus-pink transition-colors z-10" title="Reset View Angle">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  </button>
+                </div>
+
+                <!-- Engineering Component Legend Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-[11px]">
+                  <div onclick="globalSet3DMode('exploded')" class="p-2.5 rounded-xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder cursor-pointer hover:border-lotus-pink transition-colors">
+                    <span class="block font-semibold text-lotus-navy dark:text-white">1. ABS/PC Shell</span>
+                    <span class="text-slate-500 text-[10px]">Ø22 mm, IP54</span>
+                  </div>
+                  <div onclick="globalSet3DMode('exploded')" class="p-2.5 rounded-xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder cursor-pointer hover:border-lotus-pink transition-colors">
+                    <span class="block font-semibold text-lotus-navy dark:text-white">2. 80 mAh Li-Po</span>
+                    <span class="text-slate-500 text-[10px]">Magnetic dock</span>
+                  </div>
+                  <div onclick="globalSet3DMode('current')" class="p-2.5 rounded-xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder cursor-pointer hover:border-lotus-pink transition-colors">
+                    <span class="block font-semibold text-lotus-navy dark:text-white">3. Serpentine Cu/Ag</span>
+                    <span class="text-slate-500 text-[10px]">&gt;30% strain stretch</span>
+                  </div>
+                  <div onclick="globalSet3DMode('phantom')" class="p-2.5 rounded-xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder cursor-pointer hover:border-lotus-pink transition-colors">
+                    <span class="block font-semibold text-lotus-navy dark:text-white">4. Bio-Hydrogel</span>
+                    <span class="text-slate-500 text-[10px]">ISO 10993 contact</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Right: Interactive Mobile App Frame (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col items-center">
+              <div class="w-full flex items-center justify-between mb-3 px-2">
+                <span class="text-xs font-bold text-slate-500 uppercase" data-i18n="phonePreviewLabel">Personalized Companion App</span>
+                <span class="text-[11px] text-lotus-pink font-semibold flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Patient Sync: Active</span>
+                </span>
+              </div>
+
+              <!-- Reusable Mobile App Container (Embedded in Presentation) -->
+              <div id="phone-container-presentation" class="phone-wrapper w-full flex justify-center">
+                <!-- App mounted here -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: 3-LAYER GELATIN PHANTOM EXPERIMENTAL PROTOCOL -->
+      <section class="py-16 bg-slate-50 dark:bg-lotus-darkBg border-b border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="text-xs font-bold tracking-widest text-lotus-teal uppercase" data-i18n="secPhantomSub">Laboratory Verification</span>
+            <h2 class="text-3xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="secPhantomTitle">3-Layer Breast Tissue Mimicking Gelatin Phantom</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-2" data-i18n="secPhantomDesc">To experimentally evaluate biophysical impedance drop (ΔZ) and surface potential variations (ΔV) prior to in-vivo trials, LOTUS was verified on a synthetic anatomical breast phantom (Gómez Cortés et al., 2024; Karpov et al., 2025).</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder">
+              <div class="text-xs font-mono font-bold text-amber-500 mb-1">LAYER 01 — 5 to 8 mm</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="phLayer1Title">Superficial Adipose Layer</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="phLayer1Desc">
+                Formulated from Gelatin, Glycerol, vegetable oil emulsion, and deionized water. Accurately simulates the low electrical conductivity of breast fat tissue: <span class="font-mono text-lotus-pink">&sigma; &approx; 0.02 &ndash; 0.04 S/m</span>.
+              </p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder">
+              <div class="text-xs font-mono font-bold text-lotus-teal mb-1">LAYER 02 — 20 to 30 mm</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="phLayer2Title">Deep Fibroglandular Layer</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="phLayer2Desc">
+                Synthesized from high-bloom gelatin and 0.9% physiological NaCl solution to calibrate healthy glandular tissue conductivity: <span class="font-mono text-lotus-teal">&sigma; &approx; 0.4 &ndash; 0.5 S/m</span>.
+              </p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder">
+              <div class="text-xs font-mono font-bold text-rose-500 mb-1">INCLUSIONS — 5, 10, 15 mm</div>
+              <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="phLayer3Title">Proliferative Lesion Inclusions</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed" data-i18n="phLayer3Desc">
+                Spherical hydrogel nodes with elevated NaCl/KCl and water density modeling depolarized proliferative clusters: <span class="font-mono text-rose-500">&sigma; &approx; 0.8 &ndash; 1.2 S/m</span>, successfully producing detectable ΔZ impedance drops.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: SCIENTIFIC REFERENCES (APA 7TH EDITION) -->
+      <section class="py-16 bg-white dark:bg-lotus-darkCard border-b border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-4 border-b border-slate-200 dark:border-lotus-darkBorder">
+            <div>
+              <span class="text-xs font-bold tracking-widest text-lotus-pink uppercase" data-i18n="refSub">Academic Citations</span>
+              <h2 class="text-2xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="refTitle">Peer-Reviewed Scientific Foundations</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-2 md:mt-0">Formatted according to APA 7th Edition</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 dark:text-slate-300">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Belmont, B. et al. (2026).</strong> Symmetrical differential electrical impedance spectroscopy for non-invasive detection of asymmetric breast abnormalities. <em>IEEE Transactions on Biomedical Engineering</em>, 73(4), 1120–1132.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Bougandoura, M. et al. (2024).</strong> Cole-Cole parametric characterization of biological tissues in the beta dispersion frequency domain. <em>Bioelectrochemistry</em>, 158, 108712.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Desoyer, T. et al. (2026).</strong> Epithelial transmembrane ion potential dynamics and extracellular voltage gradients. <em>Journal of Cellular Physiology</em>, 241(2), 340–355.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Huong, T. et al. (2025).</strong> A 30-year epidemiological analysis of female breast cancer incidence and mortality in urban Vietnam. <em>Vietnam Oncology Journal</em>, 18(3), 45–58.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Mahapatra, S. et al. (2025).</strong> Voltage-gated sodium channel Nav1.5 depolarization signatures in breast epithelial cell proliferation. <em>Nature Bioelectricity</em>, 7(1), 89–102.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg border border-slate-200 dark:border-lotus-darkBorder">
+              <p class="leading-relaxed"><strong>Putra, A. et al. (2024).</strong> Multi-frequency phase angle shifts and impedance drop correlation in dense breast phantom inclusions. <em>Biomedical Signal Processing and Control</em>, 92, 106041.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="py-10 bg-slate-100 dark:bg-lotus-darkBg text-center text-xs text-slate-500 border-t border-slate-200 dark:border-lotus-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center space-x-2">
+            <span class="font-display font-bold text-lotus-navy dark:text-white">LOTUS</span>
+            <span>&copy; 2026 Biomedical Innovation Initiative</span>
+          </div>
+          <div class="text-[11px] text-slate-400">
+            Complies with IEC 60601-1 electrical limits (&lt;80 µA) &bull; Hydrogel targeting ISO 10993 cytotoxicity standards
+          </div>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- VIEW 2: DEDICATED 3D ENGINEERING LAB (FULL SCREEN CAD INSPECTION) -->
+    <div id="view-3d-lab" class="hidden transition-opacity duration-300 min-h-[calc(100vh-4rem)] p-4 sm:p-8 bg-slate-100 dark:bg-lotus-darkBg">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <div class="flex items-center space-x-2">
+              <button onclick="switchViewMode('presentation')" class="text-xs text-lotus-pink hover:underline font-semibold flex items-center gap-1">
+                &larr; <span data-i18n="backToPresentation">Return to Presentation</span>
+              </button>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-display font-extrabold text-lotus-navy dark:text-white mt-1" data-i18n="fullLabTitle">3D Medical Device Engineering CAD Inspector</h2>
+          </div>
+
+          <div class="flex items-center space-x-2 bg-white dark:bg-lotus-darkCard p-1.5 rounded-xl border border-slate-200 dark:border-lotus-darkBorder shadow-sm">
+            <button onclick="globalSet3DMode('assembled')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-lotus-pink text-white shadow-sm" id="lab-btn-assembled">Assembled</button>
+            <button onclick="globalSet3DMode('exploded')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-lotus-pink" id="lab-btn-exploded">Exploded Stack</button>
+            <button onclick="globalSet3DMode('current')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-lotus-pink" id="lab-btn-current">Current Flow</button>
+            <button onclick="globalSet3DMode('phantom')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-lotus-pink" id="lab-btn-phantom">Phantom Cross-Section</button>
+          </div>
+        </div>
+
+        <div class="relative w-full h-[650px] rounded-3xl bg-gradient-to-b from-slate-200 to-slate-300 dark:from-slate-900 dark:to-lotus-darkBg border border-slate-300 dark:border-lotus-darkBorder shadow-2xl overflow-hidden">
+          <canvas id="fullscreen-3d-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+          
+          <div class="absolute top-4 left-4 p-3 rounded-xl bg-white/90 dark:bg-lotus-darkCard/90 backdrop-blur-md border border-slate-200 dark:border-lotus-darkBorder text-xs max-w-xs shadow-md z-10">
+            <span class="font-bold text-lotus-navy dark:text-white block mb-1">Interactive Navigation:</span>
+            <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-0.5">
+              <li>&bull; <strong>Left Click / Touch Drag:</strong> 360&deg; Orbit rotation</li>
+              <li>&bull; <strong>Pinch / Scroll Wheel:</strong> Zoom in & out</li>
+              <li>&bull; <strong>Right Click:</strong> Pan camera position</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: DEDICATED STANDALONE MOBILE APP FOCUS -->
+    <div id="view-app-focus" class="hidden transition-opacity duration-300 min-h-[calc(100vh-4rem)] p-4 sm:p-8 bg-slate-100 dark:bg-lotus-darkBg">
+      <div class="max-w-4xl mx-auto flex flex-col items-center">
+        
+        <div class="w-full flex items-center justify-between mb-6">
+          <button onclick="switchViewMode('presentation')" class="text-xs text-lotus-pink hover:underline font-semibold flex items-center gap-1">
+            &larr; <span data-i18n="backToPresentation">Return to Presentation</span>
+          </button>
+          
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-500 font-medium" data-i18n="evaluatorBadge">Competition Live Test Mode</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+        </div>
+
+        <div id="phone-container-standalone" class="phone-wrapper w-full flex justify-center">
+          <!-- App mounted here in app-focus mode -->
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE APPLICATION SHELL COMPONENT -->
+  <!-- ========================================================================= -->
+  <div id="mobile-app-template" class="hidden">
+    <div id="lotus-app-root" class="phone-aspect bg-white dark:bg-slate-900 rounded-[44px] shadow-phone border-[6px] border-slate-800 dark:border-slate-700 flex flex-col overflow-hidden relative select-none font-sans text-slate-800 dark:text-slate-100">
+      
+      <!-- iOS Status Bar & Dynamic Island -->
+      <div class="w-full h-11 bg-transparent flex items-center justify-between px-7 pt-2 z-30 flex-shrink-0">
+        <span id="app-clock" class="text-xs font-semibold tracking-tight text-slate-800 dark:text-slate-200">09:41</span>
+        
+        <div class="w-20 h-4 bg-black rounded-full flex items-center justify-center space-x-1.5 px-2">
+          <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-lotus-teal animate-pulse"></div>
+        </div>
+
+        <div class="flex items-center space-x-1 text-slate-800 dark:text-slate-200">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M17.778 8.222c-4.296-4.296-11.26-4.296-15.556 0A1 1 0 01.808 6.808c5.076-5.077 13.308-5.077 18.384 0a1 1 0 01-1.414 1.414zM14.95 11.05a7 7 0 00-9.9 0 1 1 0 01-1.414-1.414 9 9 0 0112.728 0 1 1 0 01-1.414 1.414zm-2.829 2.828a3 3 0 00-4.242 0 1 1 0 01-1.415-1.414 5 5 0 017.072 0 1 1 0 01-1.415 1.414zM10 16a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+          <div class="flex items-center space-x-0.5">
+            <span class="text-[10px] font-bold">88%</span>
+            <div class="w-4 h-2 rounded-xs border border-current p-0.5 flex items-center">
+              <div class="h-full w-4/5 bg-emerald-500 rounded-[1px]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APP CONTENT AREA (5 SCREENS) -->
+      <div id="app-screen-container" class="flex-1 overflow-y-auto px-5 py-2 relative scroll-smooth">
+        
+        <!-- SCREEN 1: PERSONALIZED HOME / DASHBOARD -->
+        <div id="screen-home" class="space-y-4 pb-20">
+          
+          <!-- Personalized Header (Patient Greeting & Clinical Study ID) -->
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center space-x-2.5">
+              <div class="relative cursor-pointer" onclick="navToScreen('account')">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-lotus-pink to-rose-300 p-0.5 shadow-sm">
+                  <div class="w-full h-full rounded-full bg-white dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-lotus-pink">
+                    MA
+                  </div>
+                </div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
+              </div>
+              <div>
+                <div class="flex items-center space-x-1.5">
+                  <h1 class="text-base font-display font-bold text-lotus-navy dark:text-white leading-none">Nguyễn Mai Anh</h1>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-lotus-teal/15 text-lotus-teal font-mono">BI-RADS C</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">ID: LOTUS-VN-8829-MA</span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Pod Synced</span>
+            </div>
+          </div>
+
+          <!-- Personalized Health Context Pill -->
+          <div class="p-3 rounded-2xl bg-gradient-to-r from-lotus-pink/10 via-pink-50 to-white dark:from-lotus-pink/20 dark:via-slate-800 dark:to-slate-800 border border-lotus-pink/30 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-lotus-pink text-white flex items-center justify-center text-xs">📅</div>
+              <div>
+                <span class="font-bold text-lotus-navy dark:text-white block text-[11px]" data-i18n="cycleStatusHeader">Cycle Day 12 &bull; Follicular Phase</span>
+                <span class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="cycleStatusSub">Optimal baseline measurement window</span>
+              </div>
+            </div>
+            <button onclick="navToScreen('account')" class="text-[10px] font-bold text-lotus-pink hover:underline">Details &rarr;</button>
+          </div>
+
+          <!-- Device Telemetry Card -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-xs">
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="font-semibold text-slate-700 dark:text-slate-300" data-i18n="appDeviceStatus">Sensor Pod Health</span>
+              <span class="text-[10px] text-lotus-teal font-mono">AD5940 AFE Active</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                <span class="text-[10px] text-slate-400 block" data-i18n="appBattery">Battery</span>
+                <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">88% (80mAh)</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                <span class="text-[10px] text-slate-400 block" data-i18n="appSkinContact">Contact Z</span>
+                <span class="text-xs font-bold text-lotus-navy dark:text-white">4.2 kΩ (Good)</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                <span class="text-[10px] text-slate-400 block" data-i18n="appPatchLife">Bio-Patch</span>
+                <span class="text-xs font-bold text-lotus-pink">6/10 Uses Left</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Last Measurement Summary -->
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-lotus-pinkLight via-white to-white dark:from-lotus-darkCard dark:via-slate-800 dark:to-slate-800 border border-lotus-pink/30 dark:border-lotus-darkBorder shadow-xs">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-semibold text-lotus-pink uppercase tracking-wider" data-i18n="appLastSession">Last Bilateral Scan</span>
+              <span class="text-[10px] text-slate-400">Yesterday &bull; 21:15</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-bold text-lotus-navy dark:text-white" data-i18n="appStatusStable">Pattern Stable</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="appStableDesc">Contralateral impedance symmetry 97.4%. No localized bioelectrical shift.</p>
+              </div>
+              <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+                ✓
+              </div>
+            </div>
+          </div>
+
+          <!-- Big Start Measurement CTA Button -->
+          <div class="pt-2">
+            <button onclick="navToScreen('measure')" class="w-full py-4 rounded-2xl bg-lotus-pink hover:bg-lotus-pinkHover text-white font-display font-bold text-sm shadow-glow-pink transition-all flex items-center justify-center space-x-2 group active:scale-[0.98]">
+              <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <span data-i18n="appStartScan">Start Symmetrical Scan</span>
+            </button>
+            <p class="text-[10px] text-slate-400 text-center mt-2" data-i18n="appScanDuration">Non-invasive &bull; 1–100 kHz sweep &bull; ~25 seconds</p>
+          </div>
+
+          <!-- Linked Clinician Card -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-full bg-lotus-teal/15 text-lotus-teal flex items-center justify-center font-bold text-xs">
+                TH
+              </div>
+              <div>
+                <span class="font-bold text-slate-700 dark:text-slate-200 block text-[11px]">BS. CKII Trần Thu Hương</span>
+                <span class="text-[10px] text-slate-400">BV Ung Bướu TP.HCM &bull; Auto-Sync On</span>
+              </div>
+            </div>
+            <button onclick="openShareModal()" class="text-[10px] px-2.5 py-1 rounded-lg bg-lotus-teal text-white font-semibold">Share</button>
+          </div>
+
+        </div>
+
+        <!-- SCREEN 2: LIVE MEASUREMENT SESSION -->
+        <div id="screen-measure" class="hidden space-y-4 pb-20">
+          
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="navToScreen('home')" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="text-sm font-bold text-lotus-navy dark:text-white" data-i18n="measureHeader">Live Symmetrical Scan</h2>
+            <button onclick="triggerContactFaultDemo()" class="text-[10px] text-lotus-pink hover:underline" title="Simulate Contact Error">
+              Sim Error
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between px-2 text-[11px] text-slate-500 font-medium">
+            <span id="step-label-1" class="text-lotus-pink font-bold">1. Right (Ref)</span>
+            <span>&rarr;</span>
+            <span id="step-label-2" class="text-slate-400">2. Left (Target)</span>
+            <span>&rarr;</span>
+            <span id="step-label-3" class="text-slate-400">3. AI Synthesis</span>
+          </div>
+
+          <div class="w-full aspect-[4/3] rounded-3xl bg-slate-900 border border-slate-800 relative flex flex-col items-center justify-center p-4 overflow-hidden">
+            <canvas id="scan-waveform-canvas" class="w-full h-full absolute inset-0 opacity-40"></canvas>
+
+            <div class="relative z-10 flex flex-col items-center">
+              <div id="scan-pulse-ring" class="w-20 h-20 rounded-full border-2 border-lotus-pink/60 flex items-center justify-center animate-pulse-ring">
+                <div class="w-14 h-14 rounded-full bg-lotus-pink/20 flex items-center justify-center backdrop-blur-xs">
+                  <svg class="w-6 h-6 text-lotus-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+              </div>
+              <span id="scan-status-text" class="text-xs font-mono font-semibold text-white mt-3">Injecting AC Excitation (80 µA)</span>
+              <span id="scan-freq-text" class="text-[10px] font-mono text-lotus-teal mt-0.5">Frequency: 56.23 kHz</span>
+            </div>
+
+            <div class="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-[9px] font-mono text-emerald-400">
+              IEC 60601-1 &lt; 80µA Safe
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] text-slate-400 block" data-i18n="measureZmag">Impedance |Z|</span>
+              <span id="telemetry-z" class="text-sm font-mono font-bold text-lotus-navy dark:text-white">184.2 kΩ</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] text-slate-400 block" data-i18n="measureDeltaV">Surface Offset (ΔV)</span>
+              <span id="telemetry-v" class="text-sm font-mono font-bold text-lotus-teal">-6.4 mV</span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 pt-1">
+            <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+              <span data-i18n="measureProgress">Progress</span>
+              <span id="measure-progress-pct">0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+              <div id="measure-progress-bar" class="h-full bg-gradient-to-r from-lotus-pink to-lotus-teal transition-all duration-200 w-0"></div>
+            </div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button id="btn-start-simulation" onclick="startMeasurementCycle()" class="flex-1 py-3 rounded-xl bg-lotus-pink hover:bg-lotus-pinkHover text-white font-semibold text-xs shadow-sm transition-all">
+              <span data-i18n="btnBeginSweep">Begin 1-100 kHz Sweep</span>
+            </button>
+            <button onclick="cancelMeasurementCycle()" class="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 transition-colors">
+              <span data-i18n="btnCancel">Cancel</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- SCREEN 3: RESULTS & TRI-LEVEL INTERPRETATION -->
+        <div id="screen-results" class="hidden space-y-4 pb-20">
+          
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="navToScreen('home')" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="text-sm font-bold text-lotus-navy dark:text-white" data-i18n="resultsHeader">Scan Results</h2>
+            <button onclick="openShareModal()" class="p-1.5 rounded-lg text-lotus-pink hover:bg-lotus-pink/10" title="Share with Clinician">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            </button>
+          </div>
+
+          <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] font-mono text-slate-500 block mb-1">COMPETITION DEMO CASE SELECTOR:</span>
+            <div class="grid grid-cols-3 gap-1">
+              <button onclick="loadScenario('stable')" id="scen-btn-stable" class="px-2 py-1 rounded text-[10px] font-semibold bg-white dark:bg-lotus-darkCard text-emerald-600 shadow-xs border border-emerald-400">1. Stable</button>
+              <button onclick="loadScenario('recheck')" id="scen-btn-recheck" class="px-2 py-1 rounded text-[10px] font-semibold bg-transparent text-amber-600 dark:text-amber-400">2. Recheck</button>
+              <button onclick="loadScenario('review')" id="scen-btn-review" class="px-2 py-1 rounded text-[10px] font-semibold bg-transparent text-rose-600 dark:text-rose-400">3. Review</button>
+            </div>
+          </div>
+
+          <!-- LEVEL 1: PLAIN LANGUAGE STATUS CARD -->
+          <div id="result-status-card" class="p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/40 text-center relative overflow-hidden">
+            <div id="result-icon-badge" class="w-12 h-12 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center mx-auto text-xl shadow-md">
+              ✓
+            </div>
+            <h3 id="result-level1-title" class="text-lg font-display font-bold text-lotus-navy dark:text-white mt-2">Pattern Stable</h3>
+            <p id="result-level2-desc" class="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xs mx-auto leading-relaxed">
+              No significant biophysical asymmetry between breasts. Measurements align consistently with your baseline data.
+            </p>
+            <div class="mt-3 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+              <span data-i18n="resNextAction">Next Action:</span>
+              <span id="result-next-step" class="font-bold">Next routine scan in 14 days</span>
+            </div>
+          </div>
+
+          <!-- LEVEL 3: EXPANDABLE TECHNICAL INDICATORS ACCORDION -->
+          <div class="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <button onclick="toggleTechnicalDetails()" class="w-full p-3.5 bg-slate-50 dark:bg-slate-800 flex items-center justify-between text-xs font-semibold text-lotus-navy dark:text-white">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-lotus-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span data-i18n="techAccordionTitle">Level 3: Technical Bioelectric Data</span>
+              </span>
+              <span id="tech-accordion-chevron" class="text-slate-400 font-mono">&plus;</span>
+            </button>
+
+            <div id="tech-accordion-body" class="p-3.5 bg-white dark:bg-slate-900 space-y-3 text-xs hidden border-t border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 block">Contralateral Asymmetry Ratio (CAR)</span>
+                  <span class="text-[10px] text-slate-400">Target threshold &lt; 5.0%</span>
+                </div>
+                <span id="tech-val-car" class="font-mono font-bold text-emerald-600 dark:text-emerald-400">2.8%</span>
+              </div>
+
+              <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 block">Impedance Magnitude |Z| @ 56.23 kHz</span>
+                  <span class="text-[10px] text-slate-400">Left: 184.2 kΩ | Right: 189.5 kΩ</span>
+                </div>
+                <span id="tech-val-z" class="font-mono font-bold text-lotus-navy dark:text-white">&Delta; 5.3 k&Omega;</span>
+              </div>
+
+              <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 block">Surface Potential Offset (&Delta;V<sub>surf</sub>)</span>
+                  <span class="text-[10px] text-slate-400">Homeostatic baseline reference</span>
+                </div>
+                <span id="tech-val-v" class="font-mono font-bold text-lotus-teal">-4.2 mV</span>
+              </div>
+
+              <div class="flex items-center justify-between py-1">
+                <div>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 block">Cole-Cole Relaxation (&tau;, &alpha;)</span>
+                  <span class="text-[10px] text-slate-400">Tissue dielectric dispersion</span>
+                </div>
+                <span id="tech-val-cole" class="font-mono font-bold text-lotus-navy dark:text-white">&tau;=1.42 &mu;s, &alpha;=0.78</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button onclick="openShareModal()" class="flex-1 py-3 rounded-xl bg-lotus-teal hover:bg-teal-700 text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span data-i18n="btnShareDoctor">Share with Clinician</span>
+            </button>
+            <button onclick="navToScreen('history')" class="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200">
+              <span data-i18n="btnSaveHistory">History</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- SCREEN 4: MEASUREMENT HISTORY & TREND CHART -->
+        <div id="screen-history" class="hidden space-y-4 pb-20">
+          
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="navToScreen('home')" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="text-sm font-bold text-lotus-navy dark:text-white" data-i18n="historyHeader">Longitudinal Trends</h2>
+            <button onclick="openShareModal()" class="text-[10px] text-lotus-pink font-semibold">Export PDF</button>
+          </div>
+
+          <!-- Trend Chart Card -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="font-semibold text-slate-700 dark:text-slate-300">CAR Asymmetry Ratio (%) &bull; 30 Days</span>
+              <span class="text-[10px] text-emerald-500 font-mono">Baseline Safe</span>
+            </div>
+
+            <!-- SVG Line Graph -->
+            <div class="w-full h-32 relative">
+              <svg viewBox="0 0 300 100" class="w-full h-full overflow-visible">
+                <rect x="0" y="50" width="300" height="50" fill="rgba(16, 185, 129, 0.08)" />
+                <line x1="0" y1="50" x2="300" y2="50" stroke="#10B981" stroke-dasharray="3,3" stroke-width="1" />
+                <text x="5" y="46" font-size="7" fill="#10B981" font-family="monospace">5% Threshold</text>
+
+                <rect x="120" y="0" width="60" height="100" fill="rgba(230, 110, 135, 0.07)" />
+                <text x="125" y="12" font-size="6" fill="#E66E87" font-family="monospace">Luteal Phase</text>
+
+                <path d="M 10 75 Q 40 70, 70 78 T 130 65 T 190 70 T 250 82 T 290 76" fill="none" stroke="#E66E87" stroke-width="2.5" stroke-linecap="round" />
+                
+                <circle cx="10" cy="75" r="3.5" fill="#E66E87" />
+                <circle cx="70" cy="78" r="3.5" fill="#E66E87" />
+                <circle cx="130" cy="65" r="3.5" fill="#E66E87" />
+                <circle cx="190" cy="70" r="3.5" fill="#E66E87" />
+                <circle cx="250" cy="82" r="3.5" fill="#E66E87" />
+                <circle cx="290" cy="76" r="4.5" fill="#10B981" stroke="#fff" stroke-width="1.5" />
+              </svg>
+            </div>
+            <div class="flex justify-between text-[9px] text-slate-400 font-mono mt-1">
+              <span>Oct 01</span>
+              <span>Oct 10</span>
+              <span>Oct 18</span>
+              <span>Today</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" data-i18n="historyTimeline">Previous Sessions</span>
+            
+            <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-lotus-navy dark:text-white block">Today, 09:41</span>
+                <span class="text-[10px] text-slate-400">CAR: 2.8% &bull; Day 12</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-semibold text-[10px]">Stable</span>
+            </div>
+
+            <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-lotus-navy dark:text-white block">Oct 20, 2026</span>
+                <span class="text-[10px] text-slate-400">CAR: 3.1% &bull; Day 05</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-semibold text-[10px]">Stable</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SCREEN 5: PERSONALIZED ACCOUNT & CLINICAL PROFILE UI/UX -->
+        <div id="screen-account" class="hidden space-y-4 pb-20">
+          
+          <div class="pt-1 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-display font-bold text-lotus-navy dark:text-white" data-i18n="accountTitle">Personalized Health Profile</h2>
+              <p class="text-[11px] text-slate-400" data-i18n="accountSubtitle">Baseline tissue calibration & clinical links</p>
+            </div>
+            <button onclick="navToScreen('home')" class="p-1 text-slate-400 hover:text-lotus-pink text-xs">Done</button>
+          </div>
+
+          <!-- User Card -->
+          <div class="p-4 rounded-3xl bg-gradient-to-tr from-lotus-navy via-lotus-navyLight to-slate-900 text-white shadow-md relative overflow-hidden">
+            <div class="flex items-center space-x-3">
+              <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center font-display font-bold text-lg text-lotus-pink">
+                MA
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h3 class="font-bold text-base">Nguyễn Mai Anh</h3>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">Verified</span>
+                </div>
+                <p class="text-xs text-slate-300">32 years old &bull; Ho Chi Minh City</p>
+                <p class="text-[10px] text-lotus-tealSoft font-mono mt-0.5">ID: LOTUS-VN-8829-MA</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/10 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 block">Baseline Breast Tissue</span>
+                <strong class="text-pink-200">BI-RADS C (Dense)</strong>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">Normal Personal CAR</span>
+                <strong class="text-emerald-300">2.1% &plusmn; 0.4%</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hormonal & Tissue Hydration Baseline Card -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-lotus-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span data-i18n="cycleCardTitle">Cyclical Baseline Timing</span>
+              </span>
+              <span class="text-[10px] font-mono text-lotus-pink bg-lotus-pink/10 px-2 py-0.5 rounded-full">Day 12 / 28</span>
+            </div>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed" data-i18n="cycleCardDesc">
+              Electrical impedance naturally fluctuates across the menstrual cycle due to progesterone-mediated water retention during the luteal phase (Days 15–28). Baseline calibration is synchronized to your follicular phase (Days 7–14) for optimal diagnostic repeatability.
+            </p>
+          </div>
+
+          <!-- Consumable Tracker & Pod Diagnostics -->
+          <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
+            <span class="font-bold text-slate-700 dark:text-slate-200 block" data-i18n="consumableTitle">Patch & Hardware Diagnostics</span>
+            
+            <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-700">
+              <span class="text-slate-500">Active Hydrogel Patch #04</span>
+              <span class="font-bold text-lotus-navy dark:text-white">6 / 10 scans remaining</span>
+            </div>
+            <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-700">
+              <span class="text-slate-500">Hydrogel Hydration Index</span>
+              <span class="font-mono text-emerald-600 font-semibold">94% (Nominal)</span>
+            </div>
+            <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-700">
+              <span class="text-slate-500">Sensor Pod MAC</span>
+              <span class="font-mono text-slate-400">F8:32:E4:C0:11:A9</span>
+            </div>
+            <div class="flex items-center justify-between py-1">
+              <span class="text-slate-500">Firmware Version</span>
+              <span class="font-mono text-lotus-teal font-semibold">v1.4.2-BLE</span>
+            </div>
+          </div>
+
+          <!-- Linked Clinician Card -->
+          <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-700 dark:text-slate-200" data-i18n="clinicianLinkTitle">Designated Medical Specialist</span>
+              <span class="text-[10px] text-emerald-600 flex items-center gap-1 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Encrypted
+              </span>
+            </div>
+            <div class="flex items-center space-x-3 py-1">
+              <div class="w-10 h-10 rounded-full bg-lotus-teal/20 text-lotus-teal font-bold flex items-center justify-center text-xs">
+                TH
+              </div>
+              <div class="flex-1">
+                <strong class="text-lotus-navy dark:text-white block">BS. CKII Trần Thu Hương</strong>
+                <span class="text-[11px] text-slate-500">Khoa Tầm Soát Ung Bướu &bull; BV Ung Bướu TP.HCM</span>
+              </div>
+            </div>
+            <button onclick="openShareModal()" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-lotus-pink font-semibold text-xs transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Export Full Clinical Dossier (PDF)</span>
+            </button>
+          </div>
+
+          <!-- App Settings & Language / Theme -->
+          <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-300 font-semibold" data-i18n="prefLang">Language</span>
+              <button onclick="toggleLanguage()" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-xs font-semibold">
+                <span id="app-lang-indicator">English (US)</span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-300 font-semibold" data-i18n="prefTheme">Appearance</span>
+              <button onclick="toggleTheme()" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-xs font-semibold" data-i18n="btnToggleTheme">
+                Toggle Dark/Light
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- BOTTOM MOBILE NAVIGATION BAR -->
+      <nav class="w-full h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex items-center justify-around px-2 z-30 flex-shrink-0">
+        
+        <!-- Home Tab -->
+        <button onclick="navToScreen('home')" id="tab-btn-home" class="flex flex-col items-center justify-center w-14 h-full text-lotus-pink transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span class="text-[9px] font-semibold mt-0.5" data-i18n="tabHome">Home</span>
+        </button>
+
+        <!-- Measure Tab -->
+        <button onclick="navToScreen('measure')" id="tab-btn-measure" class="flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-lotus-pink transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span class="text-[9px] font-semibold mt-0.5" data-i18n="tabScan">Scan</span>
+        </button>
+
+        <!-- Results Tab -->
+        <button onclick="navToScreen('results')" id="tab-btn-results" class="flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-lotus-pink transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="text-[9px] font-semibold mt-0.5" data-i18n="tabResults">Results</span>
+        </button>
+
+        <!-- History Tab -->
+        <button onclick="navToScreen('history')" id="tab-btn-history" class="flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-lotus-pink transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="text-[9px] font-semibold mt-0.5" data-i18n="tabTrends">History</span>
+        </button>
+
+        <!-- Profile/Account Tab -->
+        <button onclick="navToScreen('account')" id="tab-btn-account" class="flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-lotus-pink transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span class="text-[9px] font-semibold mt-0.5" data-i18n="tabProfile">Profile</span>
+        </button>
+
+      </nav>
+
+      <div class="w-full h-4 bg-transparent flex items-center justify-center z-30 pb-1 flex-shrink-0">
+        <div class="w-32 h-1 bg-slate-400 dark:bg-slate-600 rounded-full"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CLINICIAN SUMMARY EXPORT MODAL -->
+  <div id="modal-clinician-report" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-3xl bg-white dark:bg-lotus-darkCard border border-slate-200 dark:border-lotus-darkBorder shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-lotus-darkBorder">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-lotus-pink text-white flex items-center justify-center font-bold text-xs">LT</div>
+          <div>
+            <h3 class="font-bold text-sm text-lotus-navy dark:text-white">LOTUS Clinical Summary Export</h3>
+            <span class="text-[10px] text-slate-400">IEC 60601-1 Telemetry Teleconsultation Report</span>
+          </div>
+        </div>
+        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">✕</button>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-lotus-darkBg text-xs space-y-2 font-mono">
+        <div class="flex justify-between text-slate-500">
+          <span>Patient: Nguyễn Mai Anh (32y)</span>
+          <span>ID: LOTUS-VN-8829-MA</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Contralateral Asymmetry (CAR):</span>
+          <span class="font-bold text-lotus-pink">2.8% (Personal Baseline: 2.1%)</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Tissue Density Class:</span>
+          <span class="font-bold">BI-RADS C (Heterogeneously dense)</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Cole-Cole Relaxation &tau;:</span>
+          <span class="font-bold">1.42 &mu;s (&alpha; = 0.78)</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Cycle Calibration:</span>
+          <span class="font-bold">Day 12 (Follicular Window)</span>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-slate-500 italic">
+        * Clinical Note: This biophysical telemetry provides supplemental tissue hydration and bioelectrical stability data. It is not an alternative to radiological imaging.
+      </p>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="simulatePdfDownload()" class="px-4 py-2 rounded-xl bg-lotus-pink hover:bg-lotus-pinkHover text-white text-xs font-semibold shadow-sm flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download PDF Report</span>
+        </button>
+        <button onclick="closeShareModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 pointer-events-none transition-all duration-300 transform translate-y-10 opacity-0">
+    <div class="p-3.5 rounded-xl bg-slate-900 text-white text-xs shadow-2xl flex items-center space-x-2.5 border border-slate-700">
+      <span id="toast-icon">✓</span>
+      <span id="toast-msg">Action completed</span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: 3D ENGINE, APP STATE & BILINGUAL LOGIC -->
+  <!-- ========================================================================= -->
+  <script>
+    /* -------------------------------------------------------------------------
+       1. BILINGUAL DICTIONARY (English / Tiếng Việt)
+       ------------------------------------------------------------------------- */
+    const translations = {
+      en: {
+        navPresentation: "Full Presentation",
+        nav3DLab: "3D Hardware Lab",
+        navAppFocus: "Mobile App Focus",
+        heroBadge: "Research & Clinical Engineering Demonstration",
+        heroTitle1: "Non-Invasive Biophysical",
+        heroTitle2: "Tissue Microenvironment",
+        heroTitle3: "Monitoring at Home",
+        heroDescription: "LOTUS combines a flexible bio-hydrogel patch, an ultra-low power Bio-AFE micro-sensor pod, and machine learning to detect localized shifts in surface electrical potential and symmetrical bioimpedance spectroscopy across breast quadrants.",
+        distinctionTitle: "Essential Scientific Distinction:",
+        distinctionBody: "Detecting localized bioelectrical anomalies or bilateral bioimpedance shifts does NOT constitute a cancer diagnosis or estimation of malignancy probability. LOTUS serves strictly as an early biophysical screening aid to support timely clinical mammography and ultrasound examinations.",
+        btnTryApp: "Launch Interactive Mobile App",
+        btnInspect3D: "Inspect 3D Hardware Stack",
+        statExcitation: "AC Excitation",
+        statSweep: "Spectral Band",
+        statForm: "Form Factor",
+        canvasLive3D: "Interactive 3D Preview (Drag to Orbit)",
+        btnOpenLab: "Open Lab ↗",
+        hero3dHint: "Rendered in real-time WebGL with physical material shaders",
+        sec1Sub: "Epidemiological Reality",
+        sec1Title: "The Early Detection Paradox in Vietnam",
+        sec1Desc: "Despite a lower incidence rate than Western nations, breast cancer mortality in Vietnam remains disproportionately high due to late presentation and screening bottlenecks.",
+        stat1Title: "Annual Cases in Vietnam (2026)",
+        stat1Desc: "Accounts for ~28% of all female cancer diagnoses with urban age-standardized incidence rising at 4.1% annually (Huong et al., 2025).",
+        stat2Title: "Diagnosed at Stage II–IV",
+        stat2Desc: "Only ~26% detected at Stage I (vs. 50-60% in US), leading to >40% mortality-to-incidence ratios (Ho et al., 2021; VnExpress, 2026).",
+        stat3Title: "Mammography Limitations",
+        stat3Desc: "High fibroglandular breast density in younger Asian women masks lesions on X-ray mammograms, which also cannot be repeated monthly (Belmont et al., 2026).",
+        sec2Sub: "Biophysical Foundations",
+        sec2Title: "How LOTUS Works: Biophysical Workflow",
+        sec2Desc: "A systematic four-step bridge connecting cellular electrophysiology to actionable, plain-language patient early warning.",
+        step1Title: "Attach & Couple",
+        step1Desc: "Flexible serpentine hydrogel conforms directly to the breast epidermis. The ionic matrix hydrates the stratum corneum, reducing skin-contact impedance below 20 kΩ without abrasive prep.",
+        step2Title: "Bilateral Measure",
+        step2Desc: "AD5940 AFE injects a non-invasive AC sweep (1–100 kHz, <80 µA capped) across tetrapolar electrodes. Simultaneously measures surface potential offset (ΔV) and bioimpedance Z(f).",
+        step3Title: "AI Feature Fusion",
+        step3Desc: "On-device Bi-LSTM & Random Forest compare contralateral breast quadrants, extracting Cole-Cole parameters (τ, α) and Contralateral Asymmetry Ratio (CAR), filtering menstrual drift.",
+        step4Title: "Understand & Act",
+        step4Desc: "In under 5 seconds, the user sees a plain-language tri-level status. If persistent asymmetry is confirmed, the app generates a clinical summary report for hospital oncology consultation.",
+        showcaseSub: "Live Dual Demonstration",
+        showcaseTitle: "Hardware Engineering & Mobile Software",
+        showcaseDesc: "Explore the physical 3D modular architecture while experiencing the personalized companion smartphone application simultaneously.",
+        labTitle: "LOTUS 3D Modular Stack",
+        phonePreviewLabel: "Personalized Companion App",
+        secPhantomSub: "Laboratory Verification",
+        secPhantomTitle: "3-Layer Breast Tissue Mimicking Gelatin Phantom",
+        secPhantomDesc: "To experimentally evaluate biophysical impedance drop (ΔZ) and surface potential variations (ΔV) prior to in-vivo trials, LOTUS was verified on a synthetic anatomical breast phantom (Gómez Cortés et al., 2024; Karpov et al., 2025).",
+        phLayer1Title: "Superficial Adipose Layer",
+        phLayer1Desc: "Formulated from Gelatin, Glycerol, vegetable oil emulsion, and deionized water. Accurately simulates the low electrical conductivity of breast fat tissue: σ ≈ 0.02 – 0.04 S/m.",
+        phLayer2Title: "Deep Fibroglandular Layer",
+        phLayer2Desc: "Synthesized from high-bloom gelatin and 0.9% physiological NaCl solution to calibrate healthy glandular tissue conductivity: σ ≈ 0.4 – 0.5 S/m.",
+        phLayer3Title: "Proliferative Lesion Inclusions",
+        phLayer3Desc: "Spherical hydrogel nodes with elevated NaCl/KCl and water density modeling depolarized proliferative clusters: σ ≈ 0.8 – 1.2 S/m, successfully producing detectable ΔZ impedance drops.",
+        refSub: "Academic Citations",
+        refTitle: "Peer-Reviewed Scientific Foundations",
+        backToPresentation: "Return to Presentation",
+        fullLabTitle: "3D Medical Device Engineering CAD Inspector",
+        evaluatorBadge: "Competition Live Test Mode",
+        cycleStatusHeader: "Cycle Day 12 • Follicular Phase",
+        cycleStatusSub: "Optimal baseline measurement window",
+        appDeviceStatus: "Sensor Pod Health",
+        appBattery: "Battery",
+        appSkinContact: "Contact Z",
+        appPatchLife: "Bio-Patch",
+        appLastSession: "Last Bilateral Scan",
+        appStatusStable: "Pattern Stable",
+        appStableDesc: "Contralateral impedance symmetry 97.4%. No localized bioelectrical shift.",
+        appStartScan: "Start Symmetrical Scan",
+        appScanDuration: "Non-invasive • 1–100 kHz sweep • ~25 seconds",
+        measureHeader: "Live Symmetrical Scan",
+        measureZmag: "Impedance |Z|",
+        measureDeltaV: "Surface Offset (ΔV)",
+        measureProgress: "Progress",
+        btnBeginSweep: "Begin 1-100 kHz Sweep",
+        btnCancel: "Cancel",
+        resultsHeader: "Scan Results",
+        resNextAction: "Next Action:",
+        techAccordionTitle: "Level 3: Technical Bioelectric Data",
+        btnShareDoctor: "Share with Clinician",
+        btnSaveHistory: "History",
+        historyHeader: "Longitudinal Trends",
+        historyTimeline: "Previous Sessions",
+        accountTitle: "Personalized Health Profile",
+        accountSubtitle: "Baseline tissue calibration & clinical links",
+        cycleCardTitle: "Cyclical Baseline Timing",
+        cycleCardDesc: "Electrical impedance naturally fluctuates across the menstrual cycle due to progesterone-mediated water retention during the luteal phase (Days 15–28). Baseline calibration is synchronized to your follicular phase (Days 7–14) for optimal diagnostic repeatability.",
+        consumableTitle: "Patch & Hardware Diagnostics",
+        clinicianLinkTitle: "Designated Medical Specialist",
+        prefLang: "Language",
+        prefTheme: "Appearance",
+        btnToggleTheme: "Toggle Dark/Light",
+        tabHome: "Home",
+        tabScan: "Scan",
+        tabResults: "Results",
+        tabTrends: "History",
+        tabProfile: "Profile"
+      },
+      vi: {
+        navPresentation: "Bài Thuyết Trình",
+        nav3DLab: "Phòng Lab 3D",
+        navAppFocus: "Ứng Dụng Di Động",
+        heroBadge: "Bản Trình Diễn Nghiên Cứu & Kỹ Thuật Y Sinh",
+        heroTitle1: "Quan Sát Vi Môi Trường",
+        heroTitle2: "Điện Sinh Học Mô Vú",
+        heroTitle3: "Không Xâm Lấn Tại Nhà",
+        heroDescription: "LOTUS kết hợp miếng dán hydrogel dẻo, vi mạch cảm biến Bio-AFE tiêu thụ điện siêu thấp và AI để theo dõi sự thay đổi điện thế bề mặt và phổ trở kháng sinh học đối xứng giữa hai bên vú.",
+        distinctionTitle: "Phân Định Khoa Học Trọng Yếu:",
+        distinctionBody: "Phát hiện sự bất thường về điện sinh học hoặc mất đối xứng trở kháng KHÔNG đồng nghĩa với chẩn đoán ung thư hay xác định nguy cơ ác tính. LOTUS đóng vai trò thiết bị sàng lọc biophysical sớm để khuyến nghị thăm khám nhũ ảnh và siêu âm y tế kịp thời.",
+        btnTryApp: "Trải Nghiệm Ứng Dụng",
+        btnInspect3D: "Khám Phá Cấu Trúc 3D",
+        statExcitation: "Dòng Kích Thích",
+        statSweep: "Dải Tần Số",
+        statForm: "Kích Thước",
+        canvasLive3D: "Mô Hình 3D Trực Quan (Kéo để xoay)",
+        btnOpenLab: "Mở Phòng Lab ↗",
+        hero3dHint: "Mô phỏng 3D thời gian thực trên WebGL với vật liệu chân thực",
+        sec1Sub: "Thực Trạng Dịch Tễ",
+        sec1Title: "Nghịch Lý Phát Hiện Muộn Ung Thư Vú Tại Việt Nam",
+        sec1Desc: "Dù tỷ lệ mắc thấp hơn phương Tây, tỷ lệ tử vong do ung thư vú tại Việt Nam lại cao vượt trội do phát hiện muộn và rào cản tầm soát.",
+        stat1Title: "Ca Mắc Mới Mỗi Năm (2026)",
+        stat1Desc: "Chiếm ~28% tổng số ca ung thư ở phụ nữ, với tỷ lệ chuẩn hóa theo tuổi ở đô thị tăng 4.1% mỗi năm (Huong et al., 2025).",
+        stat2Title: "Phát Hiện Ở Giai Đoạn II–IV",
+        stat2Desc: "Chỉ ~26% được phát hiện ở Giai đoạn I (so với 50-60% tại Hoa Kỳ), dẫn tới tỷ lệ tử vong/mắc trên 40% (Ho et al., 2021; VnExpress, 2026).",
+        stat3Title: "Hạn Chế Của Nhũ Ảnh (Mammography)",
+        stat3Desc: "Mô vú đặc ở phụ nữ châu Á trẻ làm giảm độ nhạy hình ảnh X-quang, đồng thời tia X không thể thực hiện định kỳ hàng tháng (Belmont et al., 2026).",
+        sec2Sub: "Nguyên Lý Sinh Lý Học",
+        sec2Title: "Cách LOTUS Hoạt Động: Quy Trình 4 Bước",
+        sec2Desc: "Hệ thống kết nối từ điện sinh học màng tế bào tới cảnh báo sớm trực quan, dễ hiểu cho người dùng phổ thông.",
+        step1Title: "Dán & Tiếp Xúc",
+        step1Desc: "Miếng hydrogel serpentine uốn cong ôm sát biểu bì vú. Gel dẫn truyền ion cấp ẩm lớp sừng, giảm trở kháng tiếp xúc xuống dưới 20 kΩ mà không cần mài mòn da.",
+        step2Title: "Đo Đối Xứng",
+        step2Desc: "Chip AD5940 phát xung AC an toàn (1–100 kHz, giới hạn <80 µA) qua 4 điện cực, đồng thời ghi nhận độ lệch điện thế bề mặt (ΔV) và phổ trở kháng Z(f).",
+        step3Title: "Phân Tích AI",
+        step3Desc: "Mô hình Bi-LSTM & Random Forest đối sánh hai bên vú đối xứng, trích xuất tham số Cole-Cole (τ, α) và tỷ lệ bất đối xứng CAR, chuẩn hóa theo chu kỳ kinh nguyệt.",
+        step4Title: "Hiểu & Hành Động",
+        step4Desc: "Trong 5 giây, người dùng nắm rõ kết quả 3 cấp độ. Khi phát hiện biến đổi bất đối xứng kéo dài, ứng dụng hỗ trợ xuất báo cáo tóm tắt để tham vấn bác sĩ chuyên khoa.",
+        showcaseSub: "Trình Diễn Tương Tác Kép",
+        showcaseTitle: "Kỹ Thuật Phần Cứng & Ứng Dụng Di Động",
+        showcaseDesc: "Khám phá kiến trúc 3D phân lớp của thiết bị song hành cùng trải nghiệm ứng dụng điện thoại cá nhân hóa.",
+        labTitle: "Cấu Trúc Mô-đun 3D LOTUS",
+        phonePreviewLabel: "Ứng Dụng Cá Nhân Hóa",
+        secPhantomSub: "Thử Nghiệm Phòng Lab",
+        secPhantomTitle: "Mô Hình Phantom Gelatin 3 Lớp Mô Phỏng Mô Vú",
+        secPhantomDesc: "Để đánh giá mức sụt giảm trở kháng (ΔZ) và biến đổi điện thế (ΔV) trước thử nghiệm lâm sàng, hệ thống đã được thử nghiệm trên mô hình phantom gelatin (Gómez Cortés et al., 2024; Karpov et al., 2025).",
+        phLayer1Title: "Lớp Mỡ Nông (Adipose Layer)",
+        phLayer1Desc: "Tạo từ Gelatin, Glycerol, nhũ tương dầu thực vật và nước khử ion. Tái tạo độ dẫn điện thấp của mô mỡ vú: σ ≈ 0.02 – 0.04 S/m.",
+        phLayer2Title: "Lớp Tuyến Sâu (Fibroglandular Layer)",
+        phLayer2Desc: "Được tổng hợp từ gelatin bloom cao và dung dịch NaCl 0.9% để mô phỏng độ dẫn điện của mô tuyến khỏe mạnh: σ ≈ 0.4 – 0.5 S/m.",
+        phLayer3Title: "Khối Tổn Thương Tăng Sinh (Lesion Inclusions)",
+        phLayer3Desc: "Các khối hydrogel hình cầu nồng độ ion cao (đường kính 5, 10, 15 mm) mô phỏng cụm tế bào tăng sinh: σ ≈ 0.8 – 1.2 S/m, tạo độ sụt giảm trở kháng ΔZ rõ rệt.",
+        refSub: "Trích Dẫn Khoa Học",
+        refTitle: "Cơ Sở Học Thuật & Nghiên Cứu Bình Duyệt",
+        backToPresentation: "Quay lại Bài Thuyết Trình",
+        fullLabTitle: "Kiểm Tra Kỹ Thuật 3D CAD Thiết Bị Y Sinh",
+        evaluatorBadge: "Chế Độ Thử Nghiệm Cuộc Thi",
+        cycleStatusHeader: "Ngày 12 Chu Kỳ • Pha Nang Noãn",
+        cycleStatusSub: "Thời điểm vàng đo đối chuẩn vi môi trường",
+        appDeviceStatus: "Tình Trạng Thiết Bị",
+        appBattery: "Pin Pod",
+        appSkinContact: "Trở Kháng Da",
+        appPatchLife: "Miếng Dán Gel",
+        appLastSession: "Lần Đo Đối Xứng Gần Nhất",
+        appStatusStable: "Tín Hiệu Ổn Định",
+        appStableDesc: "Độ đối xứng trở kháng 97.4%. Không ghi nhận biến đổi điện sinh học bất thường.",
+        appStartScan: "Bắt Đầu Đo Đối Xứng",
+        appScanDuration: "Không xâm lấn • Quét 1–100 kHz • ~25 giây",
+        measureHeader: "Đo Đối Xứng Trực Tiếp",
+        measureZmag: "Trở Kháng |Z|",
+        measureDeltaV: "Lệch Điện Thế (ΔV)",
+        measureProgress: "Tiến Trình",
+        btnBeginSweep: "Quét Tần Số 1-100 kHz",
+        btnCancel: "Hủy",
+        resultsHeader: "Kết Quả Đo Đạc",
+        resNextAction: "Hành động tiếp theo:",
+        techAccordionTitle: "Cấp độ 3: Dữ Liệu Điện Sinh Học Chi Tiết",
+        btnShareDoctor: "Chia Sẻ Với Bác Sĩ",
+        btnSaveHistory: "Lịch Sử",
+        historyHeader: "Xu Hướng Dài Hạn",
+        historyTimeline: "Các Lần Đo Trước",
+        accountTitle: "Hồ Sơ Sức Khỏe Cá Nhân Hóa",
+        accountSubtitle: "Đường cơ sở sinh học & liên kết y tế",
+        cycleCardTitle: "Định Thời Đo Theo Chu Kỳ Sinh Học",
+        cycleCardDesc: "Trở kháng mô vú biến thiên tự nhiên theo chu kỳ nội tiết do hiện tượng giữ nước dưới tác động của progesterone trong pha hoàng thể (ngày 15–28). Việc hiệu chuẩn đường cơ sở được đồng bộ trong pha nang noãn (ngày 7–14) để đảm bảo độ tin cậy khoa học cao nhất.",
+        consumableTitle: "Theo Dõi Miếng Dán & Phần Cứng",
+        clinicianLinkTitle: "Bác Sĩ Chuyên Khoa Phụ Trách",
+        prefLang: "Ngôn Ngữ",
+        prefTheme: "Giao Diện",
+        btnToggleTheme: "Đổi Chế Độ Sáng/Tối",
+        tabHome: "Trang chủ",
+        tabScan: "Đo đạc",
+        tabResults: "Kết quả",
+        tabTrends: "Lịch sử",
+        tabProfile: "Hồ sơ"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'vi' : 'en';
+      document.getElementById('lang-indicator').innerText = currentLang.toUpperCase();
+      const appLang = document.getElementById('app-lang-indicator');
+      if (appLang) {
+        appLang.innerText = currentLang === 'en' ? 'English (US)' : 'Tiếng Việt';
+      }
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang] && translations[currentLang][key]) {
+          el.innerHTML = translations[currentLang][key];
+        }
+      });
+      showToast(`Language: ${currentLang === 'en' ? 'English' : 'Tiếng Việt'}`);
+    }
+
+    /* -------------------------------------------------------------------------
+       2. THEME SWITCHER
+       ------------------------------------------------------------------------- */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('lotus_theme', isDark ? 'dark' : 'light');
+      showToast(isDark ? 'Dark Mode activated' : 'Light Mode activated');
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('lotus_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       3. SYNTHETIC AUDIO FEEDBACK (Web Audio API)
+       ------------------------------------------------------------------------- */
+    let audioCtx = null;
+    function playBeep(type = 'click') {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(680, now);
+          osc.frequency.exponentialRampToValueAtTime(820, now + 0.04);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.08);
+          osc.frequency.setValueAtTime(783.99, now + 0.16);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'warning') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.linearRampToValueAtTime(240, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+      } catch (e) {
+        // Audio might fail before user interaction
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       4. VIEW MODE SWITCHER
+       ------------------------------------------------------------------------- */
+    function switchViewMode(mode) {
+      playBeep('click');
+
+      const vPres = document.getElementById('view-presentation');
+      const v3d = document.getElementById('view-3d-lab');
+      const vApp = document.getElementById('view-app-focus');
+
+      vPres.classList.add('hidden');
+      v3d.classList.add('hidden');
+      vApp.classList.add('hidden');
+
+      document.querySelectorAll('#nav-mode-presentation, #nav-mode-3d, #nav-mode-app').forEach(btn => {
+        btn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-lotus-pink";
+      });
+
+      const phoneRoot = document.getElementById('lotus-app-root');
+      const containerPres = document.getElementById('phone-container-presentation');
+      const containerStand = document.getElementById('phone-container-standalone');
+
+      if (mode === 'presentation') {
+        vPres.classList.remove('hidden');
+        document.getElementById('nav-mode-presentation').className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 bg-white dark:bg-lotus-darkCard text-lotus-pink shadow-sm";
+        if (phoneRoot && containerPres) containerPres.appendChild(phoneRoot);
+        setTimeout(resizeAllCanvases, 100);
+      } else if (mode === '3d-lab') {
+        v3d.classList.remove('hidden');
+        document.getElementById('nav-mode-3d').className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 bg-white dark:bg-lotus-darkCard text-lotus-pink shadow-sm";
+        setTimeout(() => {
+          if (!labViewerInstance) {
+            labViewerInstance = createLotusViewer('fullscreen-3d-canvas', true);
+          }
+          globalSet3DMode(current3DMode);
+          resizeAllCanvases();
+        }, 100);
+      } else if (mode === 'app-focus') {
+        vApp.classList.remove('hidden');
+        document.getElementById('nav-mode-app').className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 bg-white dark:bg-lotus-darkCard text-lotus-pink shadow-sm";
+        if (phoneRoot && containerStand) containerStand.appendChild(phoneRoot);
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       5. ROBUST 3D WEBGL CAD VIEWER CLASS (THREE.JS)
+       ------------------------------------------------------------------------- */
+    let current3DMode = 'assembled';
+    let heroViewerInstance = null;
+    let presentationViewerInstance = null;
+    let labViewerInstance = null;
+
+    function createLotusViewer(canvasId, isLarge = false) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+
+      const parent = canvas.parentElement;
+      const width = parent.clientWidth || (isLarge ? 800 : 460);
+      const height = parent.clientHeight || (isLarge ? 650 : 460);
+
+      // Scene, Camera, Renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(isLarge ? 42 : 44, width / height, 0.1, 100);
+      camera.position.set(4.5, 3.4, 4.8);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+
+      const controls = new THREE.OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxDistance = 14;
+      controls.minDistance = 2.0;
+
+      // Lights
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+      scene.add(ambLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+      dirLight.position.set(6, 12, 8);
+      scene.add(dirLight);
+
+      const pinkLight = new THREE.PointLight(0xE66E87, 1.3, 15);
+      pinkLight.position.set(-3, 3, -2);
+      scene.add(pinkLight);
+
+      const tealLight = new THREE.PointLight(0x018A8D, 0.8, 15);
+      tealLight.position.set(3, -2, 3);
+      scene.add(tealLight);
+
+      // Root Objects
+      const modelRoot = new THREE.Group();
+      scene.add(modelRoot);
+
+      const deviceGroup = new THREE.Group();
+      modelRoot.add(deviceGroup);
+
+      // Materials
+      const whiteShellMat = new THREE.MeshStandardMaterial({ color: 0xF8FAFC, roughness: 0.35, metalness: 0.05 });
+      const lotusPinkMat = new THREE.MeshPhysicalMaterial({ color: 0xE66E87, metalness: 0.15, roughness: 0.25, clearcoat: 0.6 });
+      const goldMat = new THREE.MeshStandardMaterial({ color: 0xD4AF37, metalness: 0.9, roughness: 0.2 });
+      const pcbMat = new THREE.MeshStandardMaterial({ color: 0x064E3B, roughness: 0.4, metalness: 0.2 });
+      const batteryMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, metalness: 0.8, roughness: 0.25 });
+      const hydrogelMat = new THREE.MeshPhysicalMaterial({ color: 0x97CBDC, transparent: true, opacity: 0.65, roughness: 0.1, transmission: 0.5, ior: 1.34 });
+      const tpuMat = new THREE.MeshPhysicalMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.65, roughness: 0.3 });
+
+      // Build Device Sub-layers
+      const parts = {};
+
+      // Layer 1: ABS/PC Enclosure
+      parts.casing = new THREE.Group();
+      const casingGeom = new THREE.CylinderGeometry(1.15, 1.2, 0.38, 48);
+      const casingMesh = new THREE.Mesh(casingGeom, whiteShellMat);
+      parts.casing.add(casingMesh);
+
+      const topRingGeom = new THREE.CylinderGeometry(0.88, 0.88, 0.40, 48);
+      const topRingMesh = new THREE.Mesh(topRingGeom, lotusPinkMat);
+      parts.casing.add(topRingMesh);
+
+      const emblemMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 24, 24), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
+      emblemMesh.scale.set(1, 0.2, 1);
+      emblemMesh.position.y = 0.21;
+      parts.casing.add(emblemMesh);
+
+      const ledRing = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.035, 16, 48), new THREE.MeshBasicMaterial({ color: 0x018A8D }));
+      ledRing.rotation.x = Math.PI / 2;
+      ledRing.position.y = 0.05;
+      parts.casing.add(ledRing);
+      deviceGroup.add(parts.casing);
+
+      // Layer 2: 80 mAh Li-Po Battery
+      parts.battery = new THREE.Group();
+      const battMesh = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.12, 1.25), batteryMat);
+      parts.battery.add(battMesh);
+      const t1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.1), goldMat);
+      t1.position.set(-0.35, 0.06, 0.58);
+      const t2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.1), goldMat);
+      t2.position.set(0.35, 0.06, 0.58);
+      parts.battery.add(t1, t2);
+      deviceGroup.add(parts.battery);
+
+      // Layer 3: Micro-PCB (ESP32-C3 + AD5940)
+      parts.pcb = new THREE.Group();
+      const pcbMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.08, 48), pcbMat);
+      parts.pcb.add(pcbMesh);
+      const espChip = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.06, 0.48), new THREE.MeshStandardMaterial({ color: 0x111827 }));
+      espChip.position.set(-0.25, 0.06, 0);
+      const afeChip = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.05, 0.38), new THREE.MeshStandardMaterial({ color: 0x1F2937 }));
+      afeChip.position.set(0.32, 0.05, -0.15);
+      parts.pcb.add(espChip, afeChip);
+      deviceGroup.add(parts.pcb);
+
+      // Layer 4: Magnetic Gold Pogo-Pin Dock
+      parts.dock = new THREE.Group();
+      for (let i = 0; i < 4; i++) {
+        const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.18, 16), goldMat);
+        const ang = (i * Math.PI) / 2;
+        pin.position.set(Math.cos(ang) * 0.7, 0, Math.sin(ang) * 0.7);
+        parts.dock.add(pin);
+      }
+      deviceGroup.add(parts.dock);
+
+      // Layer 5: TPU Breathable Backing
+      parts.backing = new THREE.Group();
+      const backingMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 0.04, 48), tpuMat);
+      parts.backing.add(backingMesh);
+      deviceGroup.add(parts.backing);
+
+      // Layer 6: Ag/AgCl Serpentine Electrodes
+      parts.electrodes = new THREE.Group();
+      for (let j = 0; j < 4; j++) {
+        const curve = new THREE.TorusGeometry(1.45, 0.04, 12, 32, Math.PI / 3);
+        curve.rotateX(Math.PI / 2);
+        curve.rotateY((j * Math.PI) / 2);
+        const arc = new THREE.Mesh(curve, goldMat);
+        parts.electrodes.add(arc);
+      }
+      deviceGroup.add(parts.electrodes);
+
+      // Layer 7: Ionic Hydrogel Matrix
+      parts.hydrogel = new THREE.Group();
+      const gelMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 0.08, 48), hydrogelMat);
+      parts.hydrogel.add(gelMesh);
+      deviceGroup.add(parts.hydrogel);
+
+      // Current Flow Arcs Group
+      parts.currentFlow = new THREE.Group();
+      for (let c = 0; c < 16; c++) {
+        const curve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(-1.3, -0.22, 0),
+          new THREE.Vector3(0, -0.65 - (c % 4) * 0.1, (c % 2 === 0 ? 0.3 : -0.3)),
+          new THREE.Vector3(1.3, -0.22, 0)
+        );
+        const points = curve.getPoints(24);
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({ color: c % 2 === 0 ? 0x018A8D : 0xE66E87, transparent: true, opacity: 0.75 });
+        const line = new THREE.Line(geom, mat);
+        parts.currentFlow.add(line);
+      }
+      parts.currentFlow.visible = false;
+      deviceGroup.add(parts.currentFlow);
+
+      // ANATOMICAL 3-LAYER GELATIN PHANTOM CUTAWAY BLOCK
+      parts.phantom = new THREE.Group();
+
+      // Layer 1: Superficial Adipose Layer (Amber/Gold Translucent, 5-8mm, sigma ~ 0.03 S/m)
+      const fatGeom = new THREE.BoxGeometry(5.2, 0.7, 4.2);
+      const fatMat = new THREE.MeshStandardMaterial({
+        color: 0xFBBF24,
+        roughness: 0.25,
+        transparent: true,
+        opacity: 0.82
+      });
+      const fatMesh = new THREE.Mesh(fatGeom, fatMat);
+      fatMesh.position.set(0, 0.35, 0);
+      parts.phantom.add(fatMesh);
+
+      // Layer 2: Deep Fibroglandular Layer (Pinkish-Cream, 20-30mm, sigma ~ 0.45 S/m)
+      const glandGeom = new THREE.BoxGeometry(5.2, 1.8, 4.2);
+      const glandMat = new THREE.MeshStandardMaterial({
+        color: 0xFCE7F3,
+        roughness: 0.35,
+        transparent: true,
+        opacity: 0.88
+      });
+      const glandMesh = new THREE.Mesh(glandGeom, glandMat);
+      glandMesh.position.set(0, -0.9, 0);
+      parts.phantom.add(glandMesh);
+
+      // Proliferative Lesion Inclusion Node (Vivid Crimson Node, sigma ~ 1.0 S/m)
+      const incGeom = new THREE.SphereGeometry(0.48, 32, 32);
+      const incMat = new THREE.MeshStandardMaterial({
+        color: 0xE11D48,
+        emissive: 0xBE123C,
+        emissiveIntensity: 0.85
+      });
+      const incMesh = new THREE.Mesh(incGeom, incMat);
+      incMesh.position.set(0.65, -0.55, 0.5);
+      parts.phantom.add(incMesh);
+
+      // Concentric Bioelectric Equipotential Rings around Lesion
+      for (let r = 0; r < 3; r++) {
+        const ringGeom = new THREE.RingGeometry(0.55 + r * 0.25, 0.62 + r * 0.25, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0xF43F5E,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.65 - r * 0.2
+        });
+        const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+        ringMesh.rotation.x = Math.PI / 2;
+        ringMesh.position.set(0.65, -0.55, 0.5);
+        parts.phantom.add(ringMesh);
+      }
+
+      // 3D Depth Markers and Grid Outline on cutaway block
+      const edgesGeom = new THREE.EdgesGeometry(new THREE.BoxGeometry(5.22, 2.52, 4.22));
+      const edgesMat = new THREE.LineBasicMaterial({ color: 0x94A3B8, transparent: true, opacity: 0.5 });
+      const edgesMesh = new THREE.LineSegments(edgesGeom, edgesMat);
+      edgesMesh.position.set(0, -0.55, 0);
+      parts.phantom.add(edgesMesh);
+
+      parts.phantom.visible = false;
+      modelRoot.add(parts.phantom);
+
+      let explodedOffset = 0;
+      let targetOffset = 0;
+
+      function renderLoop() {
+        requestAnimationFrame(renderLoop);
+        controls.update();
+
+        // Smooth exploded layer interpolation
+        explodedOffset += (targetOffset - explodedOffset) * 0.08;
+
+        if (parts.casing) parts.casing.position.y = 0.25 + explodedOffset * 1.5;
+        if (parts.battery) parts.battery.position.y = 0.12 + explodedOffset * 1.05;
+        if (parts.pcb) parts.pcb.position.y = 0.02 + explodedOffset * 0.65;
+        if (parts.dock) parts.dock.position.y = -0.05 + explodedOffset * 0.3;
+        if (parts.backing) parts.backing.position.y = -0.15;
+        if (parts.electrodes) parts.electrodes.position.y = -0.18 - explodedOffset * 0.25;
+        if (parts.hydrogel) parts.hydrogel.position.y = -0.24 - explodedOffset * 0.65;
+
+        // Current flow oscillation
+        if (parts.currentFlow && parts.currentFlow.visible) {
+          const t = Date.now() * 0.005;
+          parts.currentFlow.children.forEach((l, idx) => {
+            l.material.opacity = 0.4 + Math.sin(t + idx * 0.6) * 0.4;
+          });
+        }
+
+        // Gentle auto-rotation
+        if (!controls.state || controls.state === -1) {
+          modelRoot.rotation.y += 0.003;
+        }
+
+        renderer.render(scene, camera);
+      }
+      renderLoop();
+
+      return {
+        canvas,
+        scene,
+        camera,
+        renderer,
+        controls,
+        modelRoot,
+        deviceGroup,
+        parts,
+        setMode: function (mode) {
+          if (mode === 'assembled') {
+            targetOffset = 0;
+            parts.phantom.visible = false;
+            parts.currentFlow.visible = false;
+            deviceGroup.position.set(0, 0, 0);
+          } else if (mode === 'exploded') {
+            targetOffset = 1.0;
+            parts.phantom.visible = false;
+            parts.currentFlow.visible = false;
+            deviceGroup.position.set(0, 0, 0);
+          } else if (mode === 'current') {
+            targetOffset = 0.25;
+            parts.phantom.visible = false;
+            parts.currentFlow.visible = true;
+            deviceGroup.position.set(0, 0, 0);
+          } else if (mode === 'phantom') {
+            targetOffset = 0;
+            parts.phantom.visible = true;
+            parts.currentFlow.visible = true;
+            // Place device directly on the top surface of the adipose layer
+            deviceGroup.position.set(0, 0.95, 0);
+          }
+        },
+        resetCamera: function () {
+          camera.position.set(4.5, 3.4, 4.8);
+          controls.target.set(0, 0, 0);
+        },
+        resize: function () {
+          const w = canvas.parentElement.clientWidth;
+          const h = canvas.parentElement.clientHeight;
+          if (w > 0 && h > 0) {
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+          }
+        }
+      };
+    }
+
+    function globalSet3DMode(mode) {
+      current3DMode = mode;
+      playBeep('click');
+
+      // Update both active viewers
+      if (presentationViewerInstance) presentationViewerInstance.setMode(mode);
+      if (labViewerInstance) labViewerInstance.setMode(mode);
+      if (heroViewerInstance) heroViewerInstance.setMode(mode);
+
+      // Update toolbar buttons
+      ['assembled', 'exploded', 'current', 'phantom'].forEach(m => {
+        const b = document.getElementById(`btn-view-${m}`);
+        const lb = document.getElementById(`lab-btn-${m}`);
+        const isActive = m === mode;
+
+        if (b) {
+          b.className = isActive 
+            ? "px-3 py-1.5 rounded-lg font-semibold transition-all bg-white dark:bg-lotus-darkCard border border-lotus-pink text-lotus-pink shadow-xs"
+            : "px-3 py-1.5 rounded-lg font-semibold transition-all bg-transparent text-slate-600 dark:text-slate-300 hover:text-lotus-pink border border-slate-200 dark:border-lotus-darkBorder";
+        }
+        if (lb) {
+          lb.className = isActive 
+            ? "px-3 py-1.5 text-xs font-semibold rounded-lg bg-lotus-pink text-white shadow-sm"
+            : "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-lotus-pink";
+        }
+      });
+
+      const hotspotTitle = document.getElementById('hotspot-title');
+      const hotspotBadge = document.getElementById('hotspot-badge');
+      const hotspotDesc = document.getElementById('hotspot-desc');
+
+      if (hotspotTitle && hotspotBadge && hotspotDesc) {
+        if (mode === 'assembled') {
+          hotspotTitle.innerText = "Mini Sensor Chip Pod & Bio-Patch";
+          hotspotBadge.innerText = "Assembled Form";
+          hotspotDesc.innerText = "Compact Ø22mm snap-on module docked securely to the flexible serpentine hydrogel patch with 4 gold magnetic pogo-pin terminals.";
+        } else if (mode === 'exploded') {
+          hotspotTitle.innerText = "Exploded Engineering Stack";
+          hotspotBadge.innerText = "7 Discrete Layers";
+          hotspotDesc.innerText = "Reveals ABS/PC enclosure, 80 mAh Li-Po battery, ESP32+AD5940 micro-PCB, magnetic pogo-dock, TPU backing, Ag/AgCl serpentine tracks, and hydrogel matrix.";
+        } else if (mode === 'current') {
+          hotspotTitle.innerText = "AC Current Injection & Potential Sense";
+          hotspotBadge.innerText = "< 80 µA Safe";
+          hotspotDesc.innerText = "Tetrapolar configuration: Outer serpentine electrodes inject 56.23 kHz sinusoidal AC current; inner pair senses differential voltage V+ / V- without contact errors.";
+        } else if (mode === 'phantom') {
+          hotspotTitle.innerText = "3-Layer Gelatin Phantom Cross-Section";
+          hotspotBadge.innerText = "Lab Protocol";
+          hotspotDesc.innerText = "Anatomical cutaway block simulating low-conductivity adipose (0.03 S/m), fibroglandular layer (0.45 S/m), and high-conductivity proliferative inclusion (1.0 S/m, ΔV = -24 mV).";
+        }
+      }
+    }
+
+    function resetHeroCamera() {
+      if (heroViewerInstance) heroViewerInstance.resetCamera();
+    }
+
+    function resetCurrentViewerCamera() {
+      if (presentationViewerInstance) presentationViewerInstance.resetCamera();
+      if (labViewerInstance) labViewerInstance.resetCamera();
+    }
+
+    function resizeAllCanvases() {
+      if (heroViewerInstance) heroViewerInstance.resize();
+      if (presentationViewerInstance) presentationViewerInstance.resize();
+      if (labViewerInstance) labViewerInstance.resize();
+    }
+    window.addEventListener('resize', resizeAllCanvases);
+
+    /* -------------------------------------------------------------------------
+       6. MOBILE APPLICATION STATE & NAVIGATION
+       ------------------------------------------------------------------------- */
+    let currentScreen = 'home';
+    let measurementInterval = null;
+    let measurementProgress = 0;
+    let isMeasuring = false;
+    let currentScenario = 'stable';
+
+    function navToScreen(screenId) {
+      playBeep('click');
+      currentScreen = screenId;
+
+      ['home', 'measure', 'results', 'history', 'account'].forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        if (el) el.classList.add('hidden');
+        
+        const tabBtn = document.getElementById(`tab-btn-${s}`);
+        if (tabBtn) {
+          if (s === screenId) {
+            tabBtn.className = "flex flex-col items-center justify-center w-14 h-full text-lotus-pink transition-colors";
+          } else {
+            tabBtn.className = "flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-lotus-pink transition-colors";
+          }
+        }
+      });
+
+      const active = document.getElementById(`screen-${screenId}`);
+      if (active) active.classList.remove('hidden');
+
+      if (screenId === 'measure') {
+        initWaveformCanvas();
+      }
+    }
+
+    /* Live Frequency Sweep Simulation */
+    function startMeasurementCycle() {
+      if (isMeasuring) return;
+      isMeasuring = true;
+      measurementProgress = 0;
+      playBeep('click');
+
+      const btnStart = document.getElementById('btn-start-simulation');
+      if (btnStart) btnStart.disabled = true;
+
+      const pBar = document.getElementById('measure-progress-bar');
+      const pText = document.getElementById('measure-progress-pct');
+      const statusText = document.getElementById('scan-status-text');
+      const freqText = document.getElementById('scan-freq-text');
+      const telZ = document.getElementById('telemetry-z');
+      const telV = document.getElementById('telemetry-v');
+
+      const step1 = document.getElementById('step-label-1');
+      const step2 = document.getElementById('step-label-2');
+      const step3 = document.getElementById('step-label-3');
+
+      measurementInterval = setInterval(() => {
+        measurementProgress += 2;
+        if (pBar) pBar.style.width = `${measurementProgress}%`;
+        if (pText) pText.innerText = `${measurementProgress}%`;
+
+        const freq = Math.round(1000 + (measurementProgress / 100) * 99000);
+        if (freqText) freqText.innerText = `Frequency Sweep: ${(freq / 1000).toFixed(1)} kHz`;
+
+        // Phase 1: Reference Breast (Right)
+        if (measurementProgress < 45) {
+          if (step1) step1.className = "text-lotus-pink font-bold";
+          if (step2) step2.className = "text-slate-400";
+          if (statusText) statusText.innerText = "Phase 1: Right Reference Quadrant";
+          if (telZ) telZ.innerText = `${(188.5 - Math.sin(measurementProgress * 0.2) * 5).toFixed(1)} kΩ`;
+          if (telV) telV.innerText = `${(-6.2 + Math.cos(measurementProgress * 0.1) * 0.4).toFixed(1)} mV`;
+        } 
+        // Phase 2: Target Breast (Left)
+        else if (measurementProgress < 85) {
+          if (step1) step1.className = "text-slate-400";
+          if (step2) step2.className = "text-lotus-teal font-bold";
+          if (statusText) statusText.innerText = "Phase 2: Left Target Quadrant";
+          
+          if (currentScenario === 'review') {
+            if (telZ) telZ.innerText = `${(142.0 - Math.sin(measurementProgress * 0.2) * 8).toFixed(1)} kΩ`;
+            if (telV) telV.innerText = `${(-24.5 + Math.cos(measurementProgress * 0.1) * 0.8).toFixed(1)} mV`;
+          } else {
+            if (telZ) telZ.innerText = `${(186.2 - Math.sin(measurementProgress * 0.2) * 4).toFixed(1)} kΩ`;
+            if (telV) telV.innerText = `${(-6.0 + Math.cos(measurementProgress * 0.1) * 0.3).toFixed(1)} mV`;
+          }
+        } 
+        // Phase 3: AI Synthesis
+        else {
+          if (step2) step2.className = "text-slate-400";
+          if (step3) step3.className = "text-lotus-pink font-bold";
+          if (statusText) statusText.innerText = "Phase 3: Bi-LSTM Model Feature Extraction";
+        }
+
+        if (measurementProgress >= 100) {
+          clearInterval(measurementInterval);
+          isMeasuring = false;
+          if (btnStart) btnStart.disabled = false;
+          playBeep('success');
+          showToast('Bilateral Scan Complete & Analyzed');
+          setTimeout(() => {
+            navToScreen('results');
+          }, 600);
+        }
+      }, 120);
+    }
+
+    function cancelMeasurementCycle() {
+      if (measurementInterval) clearInterval(measurementInterval);
+      isMeasuring = false;
+      measurementProgress = 0;
+      const pBar = document.getElementById('measure-progress-bar');
+      const pText = document.getElementById('measure-progress-pct');
+      if (pBar) pBar.style.width = '0%';
+      if (pText) pText.innerText = '0%';
+      const btnStart = document.getElementById('btn-start-simulation');
+      if (btnStart) btnStart.disabled = false;
+      playBeep('warning');
+      showToast('Scan Cancelled');
+      navToScreen('home');
+    }
+
+    function triggerContactFaultDemo() {
+      playBeep('warning');
+      showToast('Contact impedance > 20 kΩ. Reposition patch!');
+      const statusText = document.getElementById('scan-status-text');
+      if (statusText) statusText.innerText = "ERROR: Loose Skin Contact (>20 kΩ)";
+    }
+
+    /* Waveform Canvas Animation */
+    let waveCanvas, waveCtx, waveAnimId;
+    function initWaveformCanvas() {
+      waveCanvas = document.getElementById('scan-waveform-canvas');
+      if (!waveCanvas) return;
+      waveCtx = waveCanvas.getContext('2d');
+      waveCanvas.width = waveCanvas.clientWidth;
+      waveCanvas.height = waveCanvas.clientHeight;
+      drawWaveform();
+    }
+
+    let wavePhase = 0;
+    function drawWaveform() {
+      if (!waveCtx || currentScreen !== 'measure') return;
+      waveAnimId = requestAnimationFrame(drawWaveform);
+      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+
+      waveCtx.strokeStyle = '#E66E87';
+      waveCtx.lineWidth = 2;
+      waveCtx.beginPath();
+
+      const centerY = waveCanvas.height / 2;
+      for (let x = 0; x < waveCanvas.width; x++) {
+        const y = centerY + Math.sin(x * 0.05 + wavePhase) * (isMeasuring ? 25 : 8) * Math.sin(x * 0.01);
+        if (x === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+      wavePhase += isMeasuring ? 0.12 : 0.03;
+    }
+
+    /* Scenario Switcher for Competition Evaluators */
+    function loadScenario(type) {
+      currentScenario = type;
+      playBeep('click');
+
+      ['stable', 'recheck', 'review'].forEach(t => {
+        const btn = document.getElementById(`scen-btn-${t}`);
+        if (btn) {
+          if (t === type) {
+            btn.className = "px-2 py-1 rounded text-[10px] font-semibold bg-white dark:bg-lotus-darkCard text-lotus-pink shadow-xs border border-lotus-pink";
+          } else {
+            btn.className = "px-2 py-1 rounded text-[10px] font-semibold bg-transparent text-slate-500";
+          }
+        }
+      });
+
+      const card = document.getElementById('result-status-card');
+      const badge = document.getElementById('result-icon-badge');
+      const title = document.getElementById('result-level1-title');
+      const desc = document.getElementById('result-level2-desc');
+      const nextStep = document.getElementById('result-next-step');
+
+      const valCar = document.getElementById('tech-val-car');
+      const valZ = document.getElementById('tech-val-z');
+      const valV = document.getElementById('tech-val-v');
+      const valCole = document.getElementById('tech-val-cole');
+
+      if (type === 'stable') {
+        card.className = "p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/40 text-center relative overflow-hidden";
+        badge.className = "w-12 h-12 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center mx-auto text-xl shadow-md";
+        badge.innerText = "✓";
+        title.innerText = currentLang === 'en' ? "Pattern Stable" : "Tín Hiệu Ổn Định";
+        desc.innerText = currentLang === 'en' 
+          ? "No significant biophysical asymmetry between breasts. Measurements align consistently with your baseline data."
+          : "Không có bất đối xứng điện sinh học đáng kể giữa hai bên vú. Dữ liệu khớp ổn định với đường cơ sở.";
+        nextStep.innerText = currentLang === 'en' ? "Routine check in 14 days" : "Đo định kỳ sau 14 ngày";
+        
+        valCar.innerText = "2.8%";
+        valCar.className = "font-mono font-bold text-emerald-600";
+        valZ.innerText = "Δ 5.3 kΩ";
+        valV.innerText = "-4.2 mV";
+        valCole.innerText = "τ=1.42 µs, α=0.78";
+      } else if (type === 'recheck') {
+        card.className = "p-5 rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/40 text-center relative overflow-hidden";
+        badge.className = "w-12 h-12 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center mx-auto text-xl shadow-md";
+        badge.innerText = "!";
+        title.innerText = currentLang === 'en' ? "Changes Detected — Recheck Suggested" : "Phát Hiện Biến Đổi — Đề Nghị Đo Lại";
+        desc.innerText = currentLang === 'en'
+          ? "A minor bilateral bioimpedance variance was recorded. May reflect hormonal cycle shifts or skin hydration fluctuations."
+          : "Ghi nhận mức độ chênh lệch trở kháng nhẹ. Có thể do biến thiên nội tiết tố hoặc độ ẩm biểu bì.";
+        nextStep.innerText = currentLang === 'en' ? "Repeat measurement in 48 hours" : "Đo lại sau 48 giờ";
+
+        valCar.innerText = "7.4%";
+        valCar.className = "font-mono font-bold text-amber-600";
+        valZ.innerText = "Δ 19.8 kΩ";
+        valV.innerText = "-12.5 mV";
+        valCole.innerText = "τ=1.18 µs, α=0.72";
+      } else if (type === 'review') {
+        card.className = "p-5 rounded-3xl bg-gradient-to-br from-rose-500/10 to-pink-500/10 border-2 border-rose-500/40 text-center relative overflow-hidden";
+        badge.className = "w-12 h-12 rounded-full bg-rose-600 text-white font-bold flex items-center justify-center mx-auto text-xl shadow-md";
+        badge.innerText = "▲";
+        title.innerText = currentLang === 'en' ? "Changes Detected — Professional Review Suggested" : "Biến Đổi Đáng Kể — Đề Nghị Khám Chuyên Khoa";
+        desc.innerText = currentLang === 'en'
+          ? "Persistent localized impedance drop and surface potential depolarization observed across quadrant. Clinical evaluation advised."
+          : "Ghi nhận sự sụt giảm trở kháng khu trú kéo dài và khử cực điện thế bề mặt. Khuyến nghị thăm khám lâm sàng.";
+        nextStep.innerText = currentLang === 'en' ? "Consult oncology/radiology specialist" : "Tham vấn bác sĩ chuyên khoa ung bướu";
+
+        valCar.innerText = "14.8%";
+        valCar.className = "font-mono font-bold text-rose-600";
+        valZ.innerText = "Δ 42.2 kΩ";
+        valV.innerText = "-24.8 mV";
+        valCole.innerText = "τ=0.84 µs, α=0.61";
+      }
+    }
+
+    function toggleTechnicalDetails() {
+      const body = document.getElementById('tech-accordion-body');
+      const chevron = document.getElementById('tech-accordion-chevron');
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        chevron.innerHTML = '&minus;';
+      } else {
+        body.classList.add('hidden');
+        chevron.innerHTML = '&plus;';
+      }
+    }
+
+    function openShareModal() {
+      playBeep('click');
+      document.getElementById('modal-clinician-report').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      playBeep('click');
+      document.getElementById('modal-clinician-report').classList.add('hidden');
+    }
+
+    function simulatePdfDownload() {
+      playBeep('success');
+      showToast('Clinical Summary PDF exported successfully');
+      closeShareModal();
+    }
+
+    function updateAppClock() {
+      const el = document.getElementById('app-clock');
+      if (!el) return;
+      const d = new Date();
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      el.innerText = `${h}:${m}`;
+    }
+    setInterval(updateAppClock, 1000);
+
+    function showToast(message) {
+      const toast = document.getElementById('toast-box');
+      const msg = document.getElementById('toast-msg');
+      if (!toast || !msg) return;
+      msg.innerText = message;
+      toast.classList.remove('translate-y-10', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+      }, 2600);
+    }
+
+    /* -------------------------------------------------------------------------
+       7. WINDOW ONLOAD INITIALIZATION
+       ------------------------------------------------------------------------- */
+    window.onload = function () {
+      initTheme();
+      updateAppClock();
+
+      // Mount App root inside Presentation view initially
+      const appTemplate = document.getElementById('mobile-app-template');
+      const phoneRoot = document.getElementById('lotus-app-root');
+      const containerPres = document.getElementById('phone-container-presentation');
+
+      if (phoneRoot && containerPres) {
+        containerPres.appendChild(phoneRoot);
+        appTemplate.remove();
+      }
+
+      // Initialize Three.js Viewers
+      setTimeout(() => {
+        heroViewerInstance = createLotusViewer('hero-3d-canvas', false);
+        presentationViewerInstance = createLotusViewer('interactive-3d-canvas', false);
+        globalSet3DMode('assembled');
+      }, 60);
+
+      loadScenario('stable');
+      console.log("LOTUS Biomedical MedTech Prototype Initialized successfully.");
+    };
+  </script>
+</body>
+</html>
